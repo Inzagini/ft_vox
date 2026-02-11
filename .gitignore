@@ -36,6 +36,9 @@
 *.exe
 *.out
 *.app
+ft_vox
 
 # debug information files
 *.dwo
+
+obj/
