@@ -1,8 +1,6 @@
 #include "main.hpp"
-#include <fstream>
 
-
-bool isArch()
+static bool isArch()
 {
     std::ifstream file("/etc/os-release");
 
@@ -29,6 +27,22 @@ int main()
     }
 
     Window window;
+
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
+    {
+        std::cerr << "FAILED TO START GLAD\n";
+        std::exit(-1);
+    }
+
+    Shader shader ("shaders/vertex.glsl", "shaders/fragment.glsl");
+
+    float vertices[] = {
+    // positions         // colors
+        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+        0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
+    };
+
 
 
     while (!glfwWindowShouldClose(window.get()))

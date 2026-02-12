@@ -13,8 +13,8 @@ class Window
         GLFWwindow* get() const;
         void control() const
         {
-            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-                glfwSetWindowShouldClose(window, true);
+            if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+                glfwSetWindowShouldClose(m_window, true);
         }
 
     private:
@@ -25,5 +25,5 @@ class Window
         }
 
     private:
-        GLFWwindow  *window;
+        GLFWwindow  *m_window;
 };

@@ -7,27 +7,27 @@ Window::Window()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", nullptr, nullptr);
-    if (!window)
+    m_window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", nullptr, nullptr);
+    if (!m_window)
     {
         std::cerr << "Window failed to create. Terminating\n";
         glfwTerminate();
         std::exit(-1);
     }
 
-    glfwMakeContextCurrent(this->window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwMakeContextCurrent(this->m_window);
+    glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 }
 
 Window::~Window()
 {
-    if (window)
-        glfwDestroyWindow(window);
+    if (m_window)
+        glfwDestroyWindow(m_window);
 }
 
 GLFWwindow* Window::get() const
 {
-    return window;
+    return m_window;
 }
 
 

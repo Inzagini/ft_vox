@@ -3,7 +3,7 @@ NAME:= ft_vox
 CXXFLAGS:= -std=c++20 -ldl -lglfw -lGL -g -MMD -MP
 INCLUDES:= -I. -I include -I glad/include
 SRC_DIR:= src
-SRCS:= main.cpp processingInput.cpp Window.cpp
+SRCS:= main.cpp processingInput.cpp Window.cpp Mesh.cpp Shader.cpp
 OBJ_DIR:= obj
 OBJS = $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 GLAD:= glad/src/glad.c

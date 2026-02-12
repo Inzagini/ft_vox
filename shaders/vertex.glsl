@@ -1,12 +1,14 @@
 #version 330
 
-layout (location = 0) in cec3 aPos;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
 
 uniform mat4 model;
 
-out vec3 FragPos;
+out vec3 ourColor;
 
 void main()
 {
-	FragPos = vec3(model * vec4(aPos, 1.0));
+	gl_Position = vec4(aPos, 1.0);
+	ourColor = aColor;
 }
