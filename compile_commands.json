@@ -1,0 +1,43 @@
+[
+  {
+    "file": "src/main.cpp",
+    "arguments": [
+      "g++",
+      "-std=c++20",
+      "-g",
+      "-MMD",
+      "-MP",
+      "-I.",
+      "-I",
+      "include",
+      "-I",
+      "glad/include",
+      "-c",
+      "src/main.cpp",
+      "-o",
+      "obj/main.o"
+    ],
+    "directory": "/home/inzagini/work/ft_vox",
+    "output": "obj/main.o"
+  },
+  {
+    "file": "glad/src/glad.c",
+    "arguments": [
+      "g++",
+      "glad/src/glad.c",
+      "-std=c++20",
+      "-g",
+      "-MMD",
+      "-MP",
+      "-I.",
+      "-I",
+      "include",
+      "-I",
+      "glad/include",
+      "-o",
+      "ft_vox"
+    ],
+    "directory": "/home/inzagini/work/ft_vox",
+    "output": "ft_vox"
+  }
+]

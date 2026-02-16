@@ -2,29 +2,17 @@
 
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
-#include "glm/glm.hpp"
-
 #include <vector>
-
-struct Vertex
-{
-	glm::vec3 pos;
-};
-
-struct Obj
-{
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
-	uint32_t _size;
-};
 
 class Mesh
 {
-	public:
-		Mesh(const Obj &obj);
-		~Mesh();
-		void draw();
+    public:
+        Mesh(const std::vector<float> &vertices, const unsigned int &size, const unsigned int drawType,const std::vector<unsigned int> &indices = {});
+        ~Mesh();
+        void draw();
 
-	private:
-		uint32_t m_VAO{}, m_VBO{}, m_EBO{};
+    private:
+        unsigned int    m_VBO{}, m_VAO{}, m_EBO{};
+        size_t          indexCount{};
+        size_t          vertexCount{};
 };

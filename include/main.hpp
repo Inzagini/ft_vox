@@ -1,17 +1,12 @@
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <fstream>
-
 #include "glad/glad.h"
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
+
 #include "glm/glm.hpp"
 
-#include "Window.hpp"
-#include "Shader.hpp"
-#include "Mesh.hpp"
+void processInput(GLFWwindow *window);
 
-void generalInputProcess(GLFWwindow *window);
+class Window;
 
 
