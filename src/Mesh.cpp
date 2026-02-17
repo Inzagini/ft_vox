@@ -2,8 +2,8 @@
 
 Mesh::Mesh(const std::vector<float> &vertices, const unsigned int &size, const unsigned int drawType, const std::vector<unsigned int> &indices)
 {
-    indexCount = indices.size();
-    vertexCount = vertices.size() / 3;
+    index_count = indices.size();
+    vertex_count = vertices.size() / 3;
 
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
@@ -11,7 +11,7 @@ Mesh::Mesh(const std::vector<float> &vertices, const unsigned int &size, const u
 
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW); 
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
     if (!indices.empty())
     {
@@ -42,10 +42,10 @@ Mesh::~Mesh()
 void Mesh::draw()
 {
     glBindVertexArray(m_VAO);
-    if (indexCount)
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+    if (index_count)
+        glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     else
-        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
     glBindVertexArray(0);
 }

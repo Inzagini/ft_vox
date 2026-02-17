@@ -30,6 +30,6 @@ class Shader {
         std::string loadShader(const std::string &name);
 
     private:
-        unsigned int ID;
-        
+        unsigned int m_ID;
+
 };

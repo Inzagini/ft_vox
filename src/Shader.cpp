@@ -22,12 +22,12 @@ Shader::Shader(const std::string &vertexShaderSourcePath, const std::string &fra
 
 void Shader::use()
 {
-    glUseProgram(this->ID);
+    glUseProgram(this->m_ID);
 }
 
 unsigned int Shader::getID()
 {
-    return ID;
+    return m_ID;
 }
 
 unsigned int Shader::createAndCompileShader(unsigned int type, const char* source)
@@ -41,14 +41,14 @@ unsigned int Shader::createAndCompileShader(unsigned int type, const char* sourc
 
 void Shader::attachAndLinkShaders(unsigned int vertexShader, unsigned int fragmentShader)
 {
-    this->ID = glCreateProgram();
-    glAttachShader(this->ID, vertexShader);
-    glAttachShader(this->ID, fragmentShader);
-    glLinkProgram(this->ID);
+    this->m_ID = glCreateProgram();
+    glAttachShader(this->m_ID, vertexShader);
+    glAttachShader(this->m_ID, fragmentShader);
+    glLinkProgram(this->m_ID);
 
     int success;
     char infolog[512];
-    glGetProgramiv(this->ID, GL_LINK_STATUS, &success);
+    glGetProgramiv(this->m_ID, GL_LINK_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(fragmentShader, 512, nullptr, infolog);
@@ -88,20 +88,20 @@ std::string Shader::loadShader(const std::string &name)
 
 void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
 {
-    glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]); 
+    glUniform4fv(glGetUniformLocation(m_ID, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setVec4(const std::string &name, float x, float y, float z, float w) const
-{ 
-    glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w); 
+{
+    glUniform4f(glGetUniformLocation(m_ID, name.c_str()), x, y, z, w);
 }
 
 void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
 {
-    glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    glUniformMatrix3fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 // ------------------------------------------------------------------------
 void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
 {
-    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }

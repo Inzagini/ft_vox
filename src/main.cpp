@@ -48,6 +48,7 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE) {
         zKeyPressed = false;
     }
+
     int test;
     float cameraSpeed = static_cast<float>(5.0 * deltaTime);
     glm::vec3 flatFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
@@ -67,7 +68,6 @@ void processInput(GLFWwindow *window) {
 
 int main() {
     Window window;
-
     Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
     int fbWidth, fbHeight;
@@ -160,7 +160,6 @@ int main() {
                     glm::vec3 newPos(i * spacecing - offset, 0.0f, j * spacecing - offset);
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, newPos);
-                    // model = glm::scale(model, glm::vec3(0.8f));
                     shader.setMat4("model", model);
 
                     mesh1.draw();
