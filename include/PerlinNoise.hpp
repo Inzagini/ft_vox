@@ -7,6 +7,7 @@ class  PerlinNoise
 {
     public:
         PerlinNoise(const int seed);
+        double octaveNoise(const double, const double, const int, const double, const double);
 
     private:
         void Shuffle(std::vector<int> &);
@@ -18,7 +19,6 @@ class  PerlinNoise
 
         double grad(const int hash,const double x, const double y);
         double noise(const double x, const double y);
-        double octaveNoise(const double, const double, const int, const double, const double);
 
     private:
         int seed;

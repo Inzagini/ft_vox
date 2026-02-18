@@ -1,12 +1,5 @@
 #include "main.hpp"
-#include "Mesh.hpp"
-#include "Shader.hpp"
-#include "Window.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/geometric.hpp"
-#include <GL/gl.h>
-#include <GLFW/glfw3.h>
-#include <vector>
+#include "PerlinNoise.hpp"
 
 float rotationX = 0.0f;
 float rotationY = 0.0f;
@@ -82,52 +75,31 @@ int main() {
 
     // clang-format off
     //veritces
-    std::vector<float> vertices = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    const int CHUNK_SIZE = 16;
+    const float scale = 0.01f;
+    const float heightMultiplier = 50.0f;
+    std::vector<float> vertices;
+    PerlinNoise perlin(1234);
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    for (int z{}; z <= CHUNK_SIZE; z++)
+    {
+        for (int x{}; x <= CHUNK_SIZE; x++)
+        {
+            int worldX = CHUNK_SIZE + x;
+            int worldZ = CHUNK_SIZE + z;
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            float height = perlin.octaveNoise(worldX * scale, worldZ * scale,\
+                                  6, 0.5, 2.0);
 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
+            height *= heightMultiplier;
+            vertices.push_back(worldX);
+            vertices.push_back(height);
+            vertices.push_back(worldZ);
+        }
+    }
     // clang-format on
 
-    Mesh mesh1(vertices, 5, GL_STATIC_DRAW);
+    Mesh mesh1(vertices, 3, GL_STATIC_DRAW);
 
     while (!glfwWindowShouldClose(window.get())) {
 
