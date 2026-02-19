@@ -1,13 +1,13 @@
 #include "main.hpp"
+#include "Camera.hpp"
+#include "CameraControl.hpp"
 #include "ChunkGenerator.hpp"
 #include "CubeData.hpp"
 #include "Mesh.hpp"
 #include "PerlinNoise.hpp"
+#include <GLFW/glfw3.h>
 #include <iostream>
 
-float rotationX = 0.0f;
-float rotationY = 0.0f;
-float rotationSpeed = 1.5f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -28,7 +28,7 @@ float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 float fov = 70.0f;
 
-void processInput(GLFWwindow *window) {
+void processInput(GLFWwindow *window, CameraControl &cameraControler) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -46,21 +46,24 @@ void processInput(GLFWwindow *window) {
         zKeyPressed = false;
     }
 
-    int test;
-    float cameraSpeed = static_cast<float>(5.0 * deltaTime);
-    glm::vec3 flatFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetWindowUserPointer(window, &cameraControler); // pass camera Controler to the window
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    if (glfwRawMouseMotionSupported())
+        glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * flatFront;
+        cameraControler.handleKeyboardInput(InputAction::MOVE_FORWARD);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * flatFront;
+        cameraControler.handleKeyboardInput(InputAction::MOVE_BACKWARD);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        cameraControler.handleKeyboardInput(InputAction::MOVE_LEFT);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        cameraControler.handleKeyboardInput(InputAction::MOVE_RIGHT);
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        cameraPos += cameraSpeed * glm::vec3{0, 1, 0};
+        cameraControler.handleKeyboardInput(InputAction::MOVE_FLY_UP);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * glm::vec3{0, 1, 0};
+        cameraControler.handleKeyboardInput(InputAction::MOVE_FLY_DOWN);
 }
 
 int main() {
@@ -72,12 +75,9 @@ int main() {
     glViewport(0, 0, fbWidth, fbHeight);
     glEnable(GL_DEPTH_TEST);
 
-    glfwSetCursorPosCallback(window.get(), mouse_callback);
-    glfwSetInputMode(window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    if (glfwRawMouseMotionSupported())
-        glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-
-    const int CHUNK_SIZE = 16;
+    ChunkGenerator generator(1234);
+    Camera camera;
+    CameraControl camControl(camera);
 
     while (!glfwWindowShouldClose(window.get())) {
 
@@ -85,47 +85,12 @@ int main() {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(window.get());
+        processInput(window.get(), camControl);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        int vertexOffset = 0;
-
-        ChunkGenerator generator(1234);
         tCHUNK chunk = generator.generate();
-        // tCHUNK chunk;
-        // const float scale = 0.01f;
-        // const float heightMultiplier = 50.0f;
-        //
-        // PerlinNoise perlin(1234);
-        // std::vector<std::vector<int>> heightMap(CHUNK_SIZE, std::vector<int>(CHUNK_SIZE));
-        //
-        // for (int z = 0; z < CHUNK_SIZE; z++) {
-        //     for (int x = 0; x < CHUNK_SIZE; x++) {
-        //         float height = std::floor(perlin.octaveNoise(x * scale, z * scale, 6, 0.5, 2.0) *
-        //                                   heightMultiplier);
-        //         heightMap[x][z] = height;
-        //         for (int y = 0; y <= height; y++) {
-        //             glm::vec3 offsetPos(x, y, z);
-        //
-        //             // Add cube vertices
-        //             for (int i = 0; i < 8; i++) {
-        //                 chunk.vertices.push_back(cubevertices[i].x + offsetPos.x);
-        //                 chunk.vertices.push_back(cubevertices[i].y + offsetPos.y);
-        //                 chunk.vertices.push_back(cubevertices[i].z + offsetPos.z);
-        //                 // Optional: add normals/texcoords here
-        //             }
-        //
-        //             // Add cube indices
-        //             for (int i = 0; i < 36; i++) {
-        //                 chunk.indices.push_back(cubeindices[i] + vertexOffset);
-        //             }
-        //
-        //             vertexOffset += 8; // 8 unique vertices per cube
-        //         }
-        //     }
-        // }
 
         // Create mesh once
         Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
@@ -133,13 +98,8 @@ int main() {
         shader.use();
 
         {
-            glm::mat4 projection = glm::perspective(
-                glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-            shader.setMat4("projection", projection);
-
-            glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-            shader.setMat4("view", view);
+            shader.setMat4("projection", camera.getProjection());
+            shader.setMat4("view", camera.getViewMat());
 
             glm::mat4 model = glm::mat4(1.0f);
             shader.setMat4("model", model);
@@ -155,6 +115,8 @@ int main() {
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
+    static CameraControl *controler =
+        reinterpret_cast<CameraControl *>(glfwGetWindowUserPointer(window));
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
@@ -169,21 +131,6 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
     lastX = xpos;
     lastY = ypos;
 
-    float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
+    if (controler)
+        controler->handleMouseMovement(xoffset, yoffset);
 }
