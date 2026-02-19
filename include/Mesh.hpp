@@ -4,15 +4,19 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-class Mesh
-{
-    public:
-        Mesh(const std::vector<float> &vertices, const unsigned int &size, const unsigned int drawType,const std::vector<unsigned int> &indices = {});
-        ~Mesh();
-        void draw();
+struct tCHUNK {
+    std::vector<float> vertices;
+    std::vector<unsigned int> indices;
+};
 
-    private:
-        unsigned int    m_VBO{}, m_VAO{}, m_EBO{};
-        size_t          index_count{};
-        size_t          vertex_count{};
+class Mesh {
+  public:
+    Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int drawType);
+    ~Mesh();
+    void draw();
+
+  private:
+    unsigned int m_VBO{}, m_VAO{}, m_EBO{};
+    size_t index_count{};
+    size_t vertex_count{};
 };

@@ -1,6 +1,9 @@
 #include "main.hpp"
+#include "ChunkGenerator.hpp"
+#include "CubeData.hpp"
 #include "Mesh.hpp"
 #include "PerlinNoise.hpp"
+#include <iostream>
 
 float rotationX = 0.0f;
 float rotationY = 0.0f;
@@ -74,22 +77,6 @@ int main() {
     if (glfwRawMouseMotionSupported())
         glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-    // veritces
-    glm::vec3 cubeVertices[8] = {
-        {-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f},
-        {-0.5f, -0.5f, 0.5f},  {0.5f, -0.5f, 0.5f},  {0.5f, 0.5f, 0.5f},  {-0.5f, 0.5f, 0.5f},
-    };
-
-    // Indices for the cube (two triangles per face, 36 indices)
-    unsigned int cubeIndices[36] = {
-        0, 1, 2, 2, 3, 0, // back
-        4, 5, 6, 6, 7, 4, // front
-        3, 2, 6, 6, 7, 3, // top
-        0, 1, 5, 5, 4, 0, // bottom
-        1, 2, 6, 6, 5, 1, // right
-        0, 3, 7, 7, 4, 0  // left
-    };
-
     const int CHUNK_SIZE = 16;
 
     while (!glfwWindowShouldClose(window.get())) {
@@ -103,44 +90,45 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        std::vector<float> terrainVertices;
-        std::vector<unsigned int> terrainIndices;
         int vertexOffset = 0;
 
-        const float scale = 0.01f;
-        const float heightMultiplier = 50.0f;
-
-        PerlinNoise perlin(1234);
-        std::vector<std::vector<int>> heightMap(CHUNK_SIZE, std::vector<int>(CHUNK_SIZE));
-
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            for (int x = 0; x < CHUNK_SIZE; x++) {
-                float height = std::floor(perlin.octaveNoise(x * scale, z * scale, 6, 0.5, 2.0) *
-                                          heightMultiplier);
-                heightMap[x][z] = height;
-                for (int y = 0; y <= height; y++) {
-                    glm::vec3 offsetPos(x, y, z);
-
-                    // Add cube vertices
-                    for (int i = 0; i < 8; i++) {
-                        terrainVertices.push_back(cubeVertices[i].x + offsetPos.x);
-                        terrainVertices.push_back(cubeVertices[i].y + offsetPos.y);
-                        terrainVertices.push_back(cubeVertices[i].z + offsetPos.z);
-                        // Optional: add normals/texcoords here
-                    }
-
-                    // Add cube indices
-                    for (int i = 0; i < 36; i++) {
-                        terrainIndices.push_back(cubeIndices[i] + vertexOffset);
-                    }
-
-                    vertexOffset += 8; // 8 unique vertices per cube
-                }
-            }
-        }
+        ChunkGenerator generator(1234);
+        tCHUNK chunk = generator.generate();
+        // tCHUNK chunk;
+        // const float scale = 0.01f;
+        // const float heightMultiplier = 50.0f;
+        //
+        // PerlinNoise perlin(1234);
+        // std::vector<std::vector<int>> heightMap(CHUNK_SIZE, std::vector<int>(CHUNK_SIZE));
+        //
+        // for (int z = 0; z < CHUNK_SIZE; z++) {
+        //     for (int x = 0; x < CHUNK_SIZE; x++) {
+        //         float height = std::floor(perlin.octaveNoise(x * scale, z * scale, 6, 0.5, 2.0) *
+        //                                   heightMultiplier);
+        //         heightMap[x][z] = height;
+        //         for (int y = 0; y <= height; y++) {
+        //             glm::vec3 offsetPos(x, y, z);
+        //
+        //             // Add cube vertices
+        //             for (int i = 0; i < 8; i++) {
+        //                 chunk.vertices.push_back(cubevertices[i].x + offsetPos.x);
+        //                 chunk.vertices.push_back(cubevertices[i].y + offsetPos.y);
+        //                 chunk.vertices.push_back(cubevertices[i].z + offsetPos.z);
+        //                 // Optional: add normals/texcoords here
+        //             }
+        //
+        //             // Add cube indices
+        //             for (int i = 0; i < 36; i++) {
+        //                 chunk.indices.push_back(cubeindices[i] + vertexOffset);
+        //             }
+        //
+        //             vertexOffset += 8; // 8 unique vertices per cube
+        //         }
+        //     }
+        // }
 
         // Create mesh once
-        Mesh terrainMesh(terrainVertices, 3, GL_STATIC_DRAW, terrainIndices);
+        Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
 
         shader.use();
 
