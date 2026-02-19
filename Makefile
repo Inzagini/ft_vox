@@ -1,6 +1,6 @@
 CXX:= g++
 NAME:= ft_vox
-CXXFLAGS:= -std=c++20 -ldl -lglfw -lGL -g -MMD -MP
+CXXFLAGS:= -std=c++20 -ldl -lglfw -lGL -g -MMD -MP -g
 INCLUDES:= -I. -I include -I glad/include
 SRC_DIR:= src
 SRCS:= main.cpp Window.cpp Mesh.cpp Shader.cpp PerlinNoise.cpp

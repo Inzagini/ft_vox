@@ -1,17 +1,18 @@
 #include "PerlinNoise.hpp"
 #include <algorithm>
 #include <random>
+#include <iostream>
 
 PerlinNoise::PerlinNoise(int seed): seed(seed)
 {
-    permutationTable.reserve(256);
+    permutationTable.resize(256);
 
     std::iota(permutationTable.begin(), permutationTable.end(), 0);
     
     std::default_random_engine engine(seed);
     std::shuffle(permutationTable.begin(), permutationTable.end(), engine);
 
-    std::iota(permutationTable.begin(), permutationTable.end(), 0);
+    permutationTable.insert(permutationTable.end(), permutationTable.begin(), permutationTable.end());
 }
 
 double PerlinNoise::grad(const int hash, const double x, const double y)
