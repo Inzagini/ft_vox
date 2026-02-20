@@ -40,7 +40,7 @@ void processInput(GLFWwindow *window, CameraControl &cameraControler) {
         zKeyPressed = false;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE) {
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
         glm::vec3 pos = cameraControler.getCameraPos();
         std::cout << "Current position: " << pos.x << " | " << pos.z << '\n';
     }

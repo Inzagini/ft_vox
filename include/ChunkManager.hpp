@@ -3,6 +3,7 @@
 #include "ChunkGenerator.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -20,19 +21,20 @@ class ChunkManager {
     void update(const glm::vec3 &pos);
 
   private:
-    keyHash makeKey(int x, int z) {
-        return (static_cast<long long>(x) << 32) | (static_cast<long long>(x));
-    }
-    int extractX(keyHash key) { return static_cast<int>(key >> 32); }
-
-    int extractZ(keyHash key) { return static_cast<int>(key & 0xFFFFFF); }
+    struct pairHash {
+        std::size_t operator()(const std::pair<int, int> &p) const noexcept {
+            std::size_t h1 = std::hash<int>{}(p.first);
+            std::size_t h2 = std::hash<int>{}(p.second);
+            return h1 ^ (h2 << 1);
+        }
+    };
 
   private:
     glm::vec3 playerPos;
     int seed;
-    int renderDistance{5};
+    int renderDistance{10};
     ChunkGenerator generator;
-    std::unordered_map<keyHash, Mesh> activeChunk;
+    std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
 
-    std::map<std::pair<int, int>, std::unique_ptr<Mesh>> mp;
+    // std::map<std::pair<int, int>, std::unique_ptr<Mesh>> activeChunk;
 };

@@ -1,5 +1,6 @@
 #include "ChunkManager.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include <memory>
 
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
@@ -9,10 +10,10 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             int chunkZ = playerChunkZ + dz;
             std::pair<int, int> key = {chunkX, chunkZ};
 
-            if (!mp.contains(key)) {
-                std::cout << "Generate chunk \n current size:  " << mp.size() << '\n';
-                tCHUNK playerChunk = generator.generate(chunkX, chunkZ);
-                mp[key] = std::make_unique<Mesh>(playerChunk, 3, GL_STATIC_DRAW);
+            if (!activeChunk.contains(key)) {
+                tCHUNK chunk = generator.generate(chunkX, chunkZ);
+                activeChunk[key] = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
+                // activeChunk.emplace(key, std::make_unique<Mesh>(chunk, 3u, GL_STATIC_DRAW));
             }
         }
     }
@@ -20,13 +21,12 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
 // TODO:: need to unload chunks that are futher than render distance
 void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
-    for (auto it = mp.begin(); it != mp.end();) {
+    for (auto it = activeChunk.begin(); it != activeChunk.end();) {
         int chunkX = it->first.first;
         int chunkZ = it->first.second;
         if (abs(chunkX - playerChunkX) > renderDistance ||
             abs(chunkZ - playerChunkZ) > renderDistance) {
-            std::cout << "Delete chunk \n current size: " << mp.size() << '\n';
-            it = mp.erase(it); // safely remove outside chunk
+            it = activeChunk.erase(it); // safely remove outside chunk
         } else {
             ++it;
         }
@@ -44,7 +44,7 @@ void ChunkManager::update(const glm::vec3 &pos) {
 
 void ChunkManager::render(Shader &shader) {
 
-    for (auto &[key, mesh] : mp) {
+    for (auto &[key, mesh] : activeChunk) {
         glm::mat4 model = glm::mat4(1.0f);
 
         // Offset the chunk in world space (assuming chunk size = 16)

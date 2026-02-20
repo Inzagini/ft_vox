@@ -4,6 +4,7 @@
 #include "Mesh.hpp"
 #include "PerlinNoise.hpp"
 #include "glm/glm.hpp"
+#include <iostream>
 
 class ChunkGenerator {
 
@@ -18,7 +19,7 @@ class ChunkGenerator {
     PerlinNoise terrainNoise;
     const float scale{0.01f};
     const float heightMultiplier{50.0f};
-    const float baseHeight{20.0f};
+    const float baseHeight{50.0f};
     const int chunkSize{16};
     unsigned int seed;
     std::vector<std::vector<int>> heightMap{16, std::vector<int>(16)};

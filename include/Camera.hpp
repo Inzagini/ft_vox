@@ -27,7 +27,7 @@ class Camera {
     void setPitch(const float &n) { pitch = n; }
 
   private:
-    glm::vec3 position{0.0f, 1.8f, 3.0f};
+    glm::vec3 position{0.0f, 50.8f, 3.0f};
     glm::vec3 front{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, 1.0f, 0.0f};
     float yaw{-90.0f}; // yaw is initialized to -90.0 degrees
