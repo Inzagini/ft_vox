@@ -40,6 +40,11 @@ void processInput(GLFWwindow *window, CameraControl &cameraControler) {
         zKeyPressed = false;
     }
 
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE) {
+        glm::vec3 pos = cameraControler.getCameraPos();
+        std::cout << "Current position: " << pos.x << " | " << pos.z << '\n';
+    }
+
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetWindowUserPointer(window, &cameraControler); // pass camera Controler to the window
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -69,7 +74,6 @@ int main() {
     glViewport(0, 0, fbWidth, fbHeight);
     glEnable(GL_DEPTH_TEST);
 
-    ChunkGenerator generator(1234);
     Camera camera;
     CameraControl camControl(camera);
     ChunkManager chunkManager(1234);
@@ -86,40 +90,12 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::vec3 camPos = camera.getPos();
-
-        // int chunkX = floor(camPos.x / 16);
-        // int chunkZ = floor(camPos.z / 16);
-        // std::pair<int, int> key = {chunkX, chunkZ};
-        // if (mp.find(key) == mp.end()) {
-        //     mp[key] = generator.generate(chunkX, chunkZ);
-        // }
-
-        // tCHUNK &chunk = mp[key];
-        //
         shader.use();
         shader.setMat4("projection", camera.getProjection());
         shader.setMat4("view", camera.getViewMat());
 
-        // std::cout << "map size: " << mp.size() << '\n';
-        // {
-        // glm::mat4 model = glm::mat4(1.0f);
-        // shader.setMat4("model", model);
-        //     Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
-        //     terrainMesh.draw();
-        // }
-        // for (auto &[key, chunk] : mp) {
-        //     glm::mat4 model = glm::mat4(1.0f);
-        //
-        //     // Offset the chunk in world space (assuming chunk size = 16)
-        //     model = glm::translate(model, glm::vec3(key.first, 0.0f, key.second));
-        //     shader.setMat4("model", model);
-        //
-        //     Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
-        //     terrainMesh.draw();
-        // }
-        chunkManager.update(camera.getPos(), shader);
-        // chunkManager.render(shader);
+        chunkManager.update(camera.getPos());
+        chunkManager.render(shader);
 
         glfwSwapBuffers(window.get());
         glfwPollEvents();

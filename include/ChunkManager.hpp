@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include <iostream>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <utility>
 
@@ -16,7 +17,7 @@ class ChunkManager {
     void createChunk(const int chunkX, const int chunkZ);
     void render(Shader &shader);
     void unload(const int chunkX, const int chunkZ);
-    void update(const glm::vec3 &pos, Shader &shader);
+    void update(const glm::vec3 &pos);
 
   private:
     keyHash makeKey(int x, int z) {
@@ -29,9 +30,9 @@ class ChunkManager {
   private:
     glm::vec3 playerPos;
     int seed;
-    int renderDistance{4};
+    int renderDistance{5};
     ChunkGenerator generator;
     std::unordered_map<keyHash, Mesh> activeChunk;
 
-    std::map<std::pair<int, int>, tCHUNK> mp;
+    std::map<std::pair<int, int>, std::unique_ptr<Mesh>> mp;
 };

@@ -34,9 +34,15 @@ Mesh::Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int dra
 Mesh::Mesh(Mesh &&other) noexcept {
     m_VAO = other.m_VAO;
     m_VBO = other.m_VBO;
+    m_EBO = other.m_EBO;
+    index_count = other.index_count;
+    vertex_count = other.vertex_count;
 
     other.m_VAO = 0;
     other.m_VBO = 0;
+    other.m_EBO = 0;
+    other.index_count = 0;
+    other.vertex_count = 0;
 }
 
 Mesh &Mesh::operator=(Mesh &&other) noexcept {

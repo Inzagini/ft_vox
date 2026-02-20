@@ -17,6 +17,7 @@ class CameraControl {
     CameraControl(Camera &cam) : camera(cam) {}
     void handleKeyboardInput(InputAction);
     void handleMouseMovement(float xoffset, float yoffset);
+    glm::vec3 getCameraPos() { return camera.getPos(); }
 
   private:
     Camera &camera;
