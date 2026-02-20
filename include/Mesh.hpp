@@ -12,6 +12,8 @@ struct tCHUNK {
 class Mesh {
   public:
     Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int drawType);
+    Mesh(Mesh &&other) noexcept;
+    Mesh &operator=(Mesh &&other) noexcept;
     ~Mesh();
     void draw();
 

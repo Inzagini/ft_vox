@@ -1,13 +1,15 @@
 #include "ChunkGenerator.hpp"
 #include "CubeData.hpp"
 #include "Mesh.hpp"
-#include <iostream>
 
-tCHUNK ChunkGenerator::generate() {
+tCHUNK ChunkGenerator::generate(const int chunkX, const int chunkZ) {
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
-            float height = std::floor(terrainNoise.octaveNoise(x * scale, z * scale, 6, 0.5, 2.0) *
+            float worldX = (chunkX * chunkSize + x) * scale;
+            float worldZ = (chunkZ * chunkSize + z) * scale;
+            float height = std::floor(terrainNoise.octaveNoise(worldX, worldZ, 6, 0.5, 2.0) *
                                       heightMultiplier);
+            height += baseHeight;
             heightMap[x][z] = height;
         }
     }
@@ -18,30 +20,26 @@ tCHUNK ChunkGenerator::generate() {
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y <= heightMap[x][z]; y++) {
-                bool top = (y == heightMap[x][z]);
-                bool bottom = (y == 0);
-                bool left = (x == 0 || y > heightMap[x - 1][z]);
-                bool right = (x == chunkSize - 1 || y > heightMap[x + 1][z]);
-                bool front = (z == 0 || y > heightMap[x][z - 1]);
-                bool back = (z == chunkSize - 1 || y > heightMap[x][z + 1]);
-
-                glm::vec3 pos(x, y, z);
-                if (top)
+                glm::vec3 pos(chunkX * chunkSize + x, // world X
+                              y,
+                              chunkZ * chunkSize + z // world Z
+                );
+                if (y == heightMap[x][z]) // top
                     addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
 
-                if (bottom)
+                if (y == 0) // bottom
                     addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
 
-                if (left)
+                if (x == 0 || y > heightMap[x - 1][z]) // left
                     addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
 
-                if (right)
+                if (x == chunkSize - 1 || y > heightMap[x + 1][z]) // right
                     addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
 
-                if (front)
+                if (z == 0 || y > heightMap[x][z - 1]) // front
                     addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
 
-                if (back)
+                if (z == chunkSize - 1 || y > heightMap[x][z + 1]) // back
                     addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
             }
         }

@@ -2,31 +2,25 @@
 #include "Camera.hpp"
 #include "CameraControl.hpp"
 #include "ChunkGenerator.hpp"
+#include "ChunkManager.hpp"
 #include "CubeData.hpp"
 #include "Mesh.hpp"
 #include "PerlinNoise.hpp"
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <map>
+#include <utility>
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
-// camera
-glm::vec3 cameraPos(0.0f, 1.8f, 3.0f);
-glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
-
 bool firstMouse = true;
 bool wireFrameMode = false;
 bool zKeyPressed = false;
-float yaw = -90.0f; // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction
-                    // vector pointing to the right so we initially rotate a bit to the left.
-float pitch = 0.0f;
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
-float fov = 70.0f;
 
 void processInput(GLFWwindow *window, CameraControl &cameraControler) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -78,7 +72,9 @@ int main() {
     ChunkGenerator generator(1234);
     Camera camera;
     CameraControl camControl(camera);
+    ChunkManager chunkManager(1234);
 
+    static std::map<std::pair<int, int>, tCHUNK> mp;
     while (!glfwWindowShouldClose(window.get())) {
 
         float currentFrame = glfwGetTime();
@@ -90,22 +86,40 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        tCHUNK chunk = generator.generate();
+        glm::vec3 camPos = camera.getPos();
 
-        // Create mesh once
-        Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
+        // int chunkX = floor(camPos.x / 16);
+        // int chunkZ = floor(camPos.z / 16);
+        // std::pair<int, int> key = {chunkX, chunkZ};
+        // if (mp.find(key) == mp.end()) {
+        //     mp[key] = generator.generate(chunkX, chunkZ);
+        // }
 
+        // tCHUNK &chunk = mp[key];
+        //
         shader.use();
+        shader.setMat4("projection", camera.getProjection());
+        shader.setMat4("view", camera.getViewMat());
 
-        {
-            shader.setMat4("projection", camera.getProjection());
-            shader.setMat4("view", camera.getViewMat());
-
-            glm::mat4 model = glm::mat4(1.0f);
-            shader.setMat4("model", model);
-
-            terrainMesh.draw();
-        }
+        // std::cout << "map size: " << mp.size() << '\n';
+        // {
+        // glm::mat4 model = glm::mat4(1.0f);
+        // shader.setMat4("model", model);
+        //     Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
+        //     terrainMesh.draw();
+        // }
+        // for (auto &[key, chunk] : mp) {
+        //     glm::mat4 model = glm::mat4(1.0f);
+        //
+        //     // Offset the chunk in world space (assuming chunk size = 16)
+        //     model = glm::translate(model, glm::vec3(key.first, 0.0f, key.second));
+        //     shader.setMat4("model", model);
+        //
+        //     Mesh terrainMesh(chunk, 3, GL_STATIC_DRAW);
+        //     terrainMesh.draw();
+        // }
+        chunkManager.update(camera.getPos(), shader);
+        // chunkManager.render(shader);
 
         glfwSwapBuffers(window.get());
         glfwPollEvents();

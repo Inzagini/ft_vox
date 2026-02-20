@@ -31,6 +31,27 @@ Mesh::Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int dra
 
     // glBindVertexArray(0);
 }
+Mesh::Mesh(Mesh &&other) noexcept {
+    m_VAO = other.m_VAO;
+    m_VBO = other.m_VBO;
+
+    other.m_VAO = 0;
+    other.m_VBO = 0;
+}
+
+Mesh &Mesh::operator=(Mesh &&other) noexcept {
+    if (this != &other) {
+        glDeleteVertexArrays(1, &m_VAO);
+        glDeleteBuffers(1, &m_VBO);
+
+        m_VAO = other.m_VAO;
+        m_VBO = other.m_VBO;
+
+        other.m_VAO = 0;
+        other.m_VBO = 0;
+    }
+    return *this;
+}
 
 Mesh::~Mesh() {
     glDeleteVertexArrays(1, &m_VAO);
