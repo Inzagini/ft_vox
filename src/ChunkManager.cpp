@@ -11,7 +11,8 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             std::pair<int, int> key = {chunkX, chunkZ};
 
             if (!activeChunk.contains(key)) {
-                tCHUNK chunk = generator.generate(chunkX, chunkZ);
+                generator.generateChunk(chunkX, chunkZ);
+                tCHUNK chunk = generator.addFaces(chunkX, chunkZ);
                 activeChunk[key] = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
                 // activeChunk.emplace(key, std::make_unique<Mesh>(chunk, 3u, GL_STATIC_DRAW));
             }

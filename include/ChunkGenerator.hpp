@@ -11,7 +11,8 @@ class ChunkGenerator {
 
   public:
     ChunkGenerator(unsigned int seed) : terrainNoise(seed) {};
-    tCHUNK generate(const int chunkX, const int chunkZ);
+    void generateChunk(const int chunkX, const int chunkZ);
+    tCHUNK addFaces(const int chunkX, const int chunkZ);
 
   private:
     void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);

@@ -2,7 +2,7 @@
 #include "CubeData.hpp"
 #include "Mesh.hpp"
 
-tCHUNK ChunkGenerator::generate(const int chunkX, const int chunkZ) {
+void ChunkGenerator::generateChunk(const int chunkX, const int chunkZ) {
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             float worldX = (chunkX * chunkSize + x) * scale;
@@ -13,6 +13,9 @@ tCHUNK ChunkGenerator::generate(const int chunkX, const int chunkZ) {
             heightMap[x][z] = height;
         }
     }
+}
+
+tCHUNK ChunkGenerator::addFaces(const int chunkX, const int chunkZ) {
 
     tCHUNK chunk;
     int vertexOffset{};
