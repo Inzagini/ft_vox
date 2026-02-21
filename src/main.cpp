@@ -1,15 +1,4 @@
 #include "main.hpp"
-#include "Camera.hpp"
-#include "CameraControl.hpp"
-#include "ChunkGenerator.hpp"
-#include "ChunkManager.hpp"
-#include "CubeData.hpp"
-#include "Mesh.hpp"
-#include "PerlinNoise.hpp"
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <map>
-#include <utility>
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -78,7 +67,6 @@ int main() {
     CameraControl camControl(camera);
     ChunkManager chunkManager(1234);
 
-    static std::map<std::pair<int, int>, tCHUNK> mp;
     while (!glfwWindowShouldClose(window.get())) {
 
         float currentFrame = glfwGetTime();

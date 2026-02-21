@@ -3,6 +3,11 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
+#include "Camera.hpp"
+#include "CameraControl.hpp"
+#include "ChunkGenerator.hpp"
+#include "ChunkManager.hpp"
+#include "CubeData.hpp"
 #include "Mesh.hpp"
 #include "PerlinNoise.hpp"
 #include "Shader.hpp"
@@ -11,6 +16,7 @@
 #include "glm/geometric.hpp"
 #include "glm/glm.hpp"
 #include <GL/gl.h>
+#include <iostream>
 #include <vector>
 
 void processInput(GLFWwindow *window);
