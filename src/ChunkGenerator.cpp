@@ -20,9 +20,9 @@ tCHUNK ChunkGenerator::generate(const int chunkX, const int chunkZ) {
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y <= heightMap[x][z]; y++) {
-                glm::vec3 pos(chunkX * chunkSize + x, // world X
+                glm::vec3 pos(chunkX * chunkSize + x - 1.0f, // world X
                               y,
-                              chunkZ * chunkSize + z // world Z
+                              chunkZ * chunkSize + z - 1.0f // world Z
                 );
                 if (y == heightMap[x][z]) // top
                     addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);

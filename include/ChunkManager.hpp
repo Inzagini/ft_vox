@@ -5,7 +5,6 @@
 #include "Shader.hpp"
 #include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <unordered_map>
 #include <utility>
@@ -29,12 +28,14 @@ class ChunkManager {
         }
     };
 
+    int64_t makeKey(int x, int z) { return (int64_t(x) << 32) | uint32_t(z); }
+
   private:
     glm::vec3 playerPos;
     int seed;
-    int renderDistance{10};
+    int renderDistance{5};
     ChunkGenerator generator;
     std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
-
+    std::unordered_map<int64_t, Mesh> testChunk;
     // std::map<std::pair<int, int>, std::unique_ptr<Mesh>> activeChunk;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ChunkData.hpp"
 #include "CubeData.hpp"
 #include "Mesh.hpp"
 #include "PerlinNoise.hpp"
