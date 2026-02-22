@@ -61,36 +61,6 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
     int vertexOffset{};
     int chunkSize = 16;
 
-#if 0
-    for (int z = 0; z < chunkSize; z++) {
-        for (int x = 0; x < chunkSize; x++) {
-            for (int y = 0; y <= _chunk.heightMap[x][z]; y++) {
-                glm::vec3 pos(chunkX * chunkSize + x, // world X
-                              y,
-                              chunkZ * chunkSize + z // world Z
-                );
-                if (y == _chunk.heightMap[x][z]) // top
-                    addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
-
-                // if (y == 0) // bottom
-                //     addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
-
-                if (x > 0 && y > _chunk.heightMap[x - 1][z]) // left
-                    addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
-
-                if (x < chunkSize - 1 && y > _chunk.heightMap[x + 1][z]) // right
-                    addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
-
-                if (z > 0 && y > _chunk.heightMap[x][z - 1]) // front
-                    addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
-
-                if (z < chunkSize - 1 && y > _chunk.heightMap[x][z + 1]) // back
-                    addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
-            }
-        }
-    }
-#else
-
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y <= _chunk.heightMap[x][z] + 1; y++) {
@@ -122,7 +92,6 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
             }
         }
     }
-#endif
 
     activeChunk[{chunkX, chunkZ}] = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
     return chunk;
