@@ -18,6 +18,7 @@ class ChunkManager {
     void unload(const int chunkX, const int chunkZ);
     void update(const glm::vec3 &pos);
     tCHUNK addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
+    void Meshing(const int chunkX, const int chunkZ);
 
   private:
     void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);
@@ -34,7 +35,7 @@ class ChunkManager {
   private:
     glm::vec3 playerPos;
     int seed;
-    int renderDistance{2};
+    int renderDistance{5};
     ChunkGenerator generator;
     // std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
     std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;

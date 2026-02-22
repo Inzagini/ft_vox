@@ -8,8 +8,8 @@ void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chu
             int height = std::floor(terrainNoise.octaveNoise(worldX, worldZ, 6, 0.5, 2.0) *
                                     heightMultiplier);
 
+            height += baseHeight;
             height = height > 255 ? 255 : height;
-            // height += baseHeight;
             chunk.heightMap[x][z] = height;
 
             for (int y = 0; y < 256; y++) {

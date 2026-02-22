@@ -13,6 +13,13 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             if (!activeChunk.contains(key)) {
                 Chunk chunk;
                 generator.generateChunk(chunk, chunkX, chunkZ);
+
+                if (!activeChunk.contains({chunkX - 1, chunkZ}) ||
+                    !activeChunk.contains({chunkX + 1, chunkZ}) ||
+                    !activeChunk.contains({chunkX, chunkZ - 1}) ||
+                    !activeChunk.contains({chunkX, chunkZ + 1}))
+                    chunk.dirty = true;
+
                 tCHUNK tchunk = addFaces(chunk, chunkX, chunkZ);
             }
         }
@@ -53,6 +60,11 @@ void ChunkManager::render(Shader &shader) {
     }
 }
 
+void ChunkManager::Meshing(const int chunkX, const int chunkZ) {
+
+    // if (activeChunk.contains(Chunk)
+}
+
 tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
 
     tCHUNK chunk;
@@ -88,16 +100,49 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
                 if (z < chunkSize - 1 && _chunk.block[x][y][z + 1] == CubeType::AIR) // back
                     addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
 
-                // if (x == 0) {
-                //     std::pair<int, int> key{chunkX - 1, chunkZ};
-                //
-                //     if (activeChunk.contains(key)) {
-                //         Chunk neighborChunk = activeChunk[key];
-                //
-                //         if (neighborChunk.block[15 - x][y][z] == CubeType::AIR)
-                //             addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
-                //     }
-                // }
+                if (x == 0) { // left on border
+                    std::pair<int, int> key{chunkX - 1, chunkZ};
+
+                    if (activeChunk.contains(key)) {
+                        Chunk &neighborChunk = activeChunk[key];
+
+                        if (neighborChunk.block[15][y][z] == CubeType::AIR)
+                            addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
+                    }
+                }
+
+                if (x == chunkSize - 1) { // right on border
+                    std::pair<int, int> key{chunkX + 1, chunkZ};
+
+                    if (activeChunk.contains(key)) {
+                        Chunk &neighborChunk = activeChunk[key];
+
+                        if (neighborChunk.block[0][y][z] == CubeType::AIR)
+                            addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
+                    }
+                }
+
+                if (z == 0) { // front on border
+                    std::pair<int, int> key{chunkX, chunkZ - 1};
+
+                    if (activeChunk.contains(key)) {
+                        Chunk &neighborChunk = activeChunk[key];
+
+                        if (neighborChunk.block[x][y][15] == CubeType::AIR)
+                            addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
+                    }
+                }
+
+                if (z == chunkSize - 1) { // back on border
+                    std::pair<int, int> key{chunkX, chunkZ + 1};
+
+                    if (activeChunk.contains(key)) {
+                        Chunk &neighborChunk = activeChunk[key];
+
+                        if (neighborChunk.block[x][y][0] == CubeType::AIR)
+                            addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
+                    }
+                }
             }
         }
     }
