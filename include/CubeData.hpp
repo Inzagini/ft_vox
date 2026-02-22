@@ -2,6 +2,7 @@
 #include "glm/glm.hpp"
 
 enum class CubeFace { TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK };
+enum class CubeType { AIR, SOLID };
 
 constexpr glm::vec3 cubeFaceVertices[6][4] = {
     // TOP (y+1)

@@ -1,4 +1,5 @@
 #include "ChunkManager.hpp"
+#include "CubeData.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include <memory>
 
@@ -14,8 +15,7 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
                 Chunk chunk;
                 generator.generateChunk(chunk, chunkX, chunkZ);
                 tCHUNK tchunk = addFaces(chunk, chunkX, chunkZ);
-                activeChunk[key] = std::make_unique<Mesh>(tchunk, 3, GL_STATIC_DRAW);
-                // activeChunk.emplace(key, std::make_unique<Mesh>(chunk, 3u, GL_STATIC_DRAW));
+                // activeChunk[key] = std::make_unique<Mesh>(tchunk, 3, GL_STATIC_DRAW);
             }
         }
     }
@@ -61,33 +61,70 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
     int vertexOffset{};
     int chunkSize = 16;
 
+#if 0
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y <= _chunk.heightMap[x][z]; y++) {
-                glm::vec3 pos(chunkX * chunkSize + x - 1.0f, // world X
+                glm::vec3 pos(chunkX * chunkSize + x, // world X
                               y,
-                              chunkZ * chunkSize + z - 1.0f // world Z
+                              chunkZ * chunkSize + z // world Z
                 );
                 if (y == _chunk.heightMap[x][z]) // top
                     addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
 
-                if (y == 0) // bottom
-                    addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
+                // if (y == 0) // bottom
+                //     addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
 
-                if (x == 0 || y > _chunk.heightMap[x - 1][z]) // left
+                if (x > 0 && y > _chunk.heightMap[x - 1][z]) // left
                     addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
 
-                if (x == chunkSize - 1 || y > _chunk.heightMap[x + 1][z]) // right
+                if (x < chunkSize - 1 && y > _chunk.heightMap[x + 1][z]) // right
                     addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
 
-                if (z == 0 || y > _chunk.heightMap[x][z - 1]) // front
+                if (z > 0 && y > _chunk.heightMap[x][z - 1]) // front
                     addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
 
-                if (z == chunkSize - 1 || y > _chunk.heightMap[x][z + 1]) // back
+                if (z < chunkSize - 1 && y > _chunk.heightMap[x][z + 1]) // back
                     addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
             }
         }
     }
+#else
+
+    for (int z = 0; z < chunkSize; z++) {
+        for (int x = 0; x < chunkSize; x++) {
+            for (int y = 0; y <= _chunk.heightMap[x][z] + 1; y++) {
+                glm::vec3 pos(chunkX * chunkSize + x, // world X
+                              y,
+                              chunkZ * chunkSize + z // world Z
+                );
+
+                if (_chunk.block[x][y][z] != CubeType::SOLID)
+                    continue;
+
+                if (_chunk.block[x][y + 1][z] == CubeType::AIR) // top
+                    addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
+
+                if (_chunk.block[x][y - 1][z] == CubeType::AIR) // bottom
+                    addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
+
+                if (x > 0 && _chunk.block[x - 1][y][z] == CubeType::AIR) // left
+                    addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
+
+                if (x < chunkSize - 1 && _chunk.block[x + 1][y][z] == CubeType::AIR) // right
+                    addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
+
+                if (z > 0 && _chunk.block[x][y][z - 1] == CubeType::AIR) // front
+                    addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
+
+                if (z < chunkSize - 1 && _chunk.block[x][y][z + 1] == CubeType::AIR) // back
+                    addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
+            }
+        }
+    }
+#endif
+
+    activeChunk[{chunkX, chunkZ}] = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
     return chunk;
 }
 
