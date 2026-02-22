@@ -3,9 +3,8 @@
 #include "ChunkGenerator.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
-#include <functional>
+#include "glm/ext/matrix_transform.hpp"
 #include <iostream>
-#include <memory>
 #include <unordered_map>
 #include <utility>
 
@@ -37,7 +36,9 @@ class ChunkManager {
     int seed;
     int renderDistance{2};
     ChunkGenerator generator;
-    std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
+    // std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
+    std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
+    // TODO: future change in keyhasing a paring bit shifting for cords texture and block type and
+    // map to the mesh
     std::unordered_map<int64_t, Mesh> testChunk;
-    // std::map<std::pair<int, int>, std::unique_ptr<Mesh>> activeChunk;
 };

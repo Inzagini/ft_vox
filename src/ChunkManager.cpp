@@ -1,6 +1,5 @@
 #include "ChunkManager.hpp"
 #include "CubeData.hpp"
-#include "glm/ext/matrix_transform.hpp"
 #include <memory>
 
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
@@ -15,7 +14,6 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
                 Chunk chunk;
                 generator.generateChunk(chunk, chunkX, chunkZ);
                 tCHUNK tchunk = addFaces(chunk, chunkX, chunkZ);
-                // activeChunk[key] = std::make_unique<Mesh>(tchunk, 3, GL_STATIC_DRAW);
             }
         }
     }
@@ -45,13 +43,13 @@ void ChunkManager::update(const glm::vec3 &pos) {
 
 void ChunkManager::render(Shader &shader) {
 
-    for (auto &[key, mesh] : activeChunk) {
+    for (auto &[key, chunk] : activeChunk) {
         glm::mat4 model = glm::mat4(1.0f);
 
         // Offset the chunk in world space (assuming chunk size = 16)
         model = glm::translate(model, glm::vec3(key.first, 0.0f, key.second));
         shader.setMat4("model", model);
-        mesh->draw();
+        chunk.mesh->draw();
     }
 }
 
@@ -64,9 +62,9 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y <= _chunk.heightMap[x][z] + 1; y++) {
-                glm::vec3 pos(chunkX * chunkSize + x, // world X
+                glm::vec3 pos(chunkX * (chunkSize - 1) + x, // world X
                               y,
-                              chunkZ * chunkSize + z // world Z
+                              chunkZ * (chunkSize - 1) + z // world Z
                 );
 
                 if (_chunk.block[x][y][z] != CubeType::SOLID)
@@ -75,7 +73,7 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
                 if (_chunk.block[x][y + 1][z] == CubeType::AIR) // top
                     addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
 
-                if (_chunk.block[x][y - 1][z] == CubeType::AIR) // bottom
+                if (y != 0 && _chunk.block[x][y - 1][z] == CubeType::AIR) // bottom
                     addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
 
                 if (x > 0 && _chunk.block[x - 1][y][z] == CubeType::AIR) // left
@@ -89,11 +87,22 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
 
                 if (z < chunkSize - 1 && _chunk.block[x][y][z + 1] == CubeType::AIR) // back
                     addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
+
+                // if (x == 0) {
+                //     std::pair<int, int> key{chunkX - 1, chunkZ};
+                //
+                //     if (activeChunk.contains(key)) {
+                //         Chunk neighborChunk = activeChunk[key];
+                //
+                //         if (neighborChunk.block[15 - x][y][z] == CubeType::AIR)
+                //             addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
+                //     }
+                // }
             }
         }
     }
-
-    activeChunk[{chunkX, chunkZ}] = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
+    _chunk.mesh = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
+    activeChunk[{chunkX, chunkZ}] = std::move(_chunk);
     return chunk;
 }
 
