@@ -11,11 +11,7 @@ class ChunkGenerator {
 
   public:
     ChunkGenerator(unsigned int seed) : terrainNoise(seed) {};
-    void generateChunk(const int chunkX, const int chunkZ);
-    tCHUNK addFaces(const int chunkX, const int chunkZ);
-
-  private:
-    void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);
+    void generateChunk(Chunk &chunk, const int chunkX, const int chunkZ);
 
   private:
     PerlinNoise terrainNoise;

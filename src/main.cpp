@@ -65,7 +65,7 @@ int main() {
 
     Camera camera;
     CameraControl camControl(camera);
-    ChunkManager chunkManager(1234);
+    ChunkManager chunkManager(213);
 
     while (!glfwWindowShouldClose(window.get())) {
 

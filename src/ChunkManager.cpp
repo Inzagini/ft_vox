@@ -11,16 +11,16 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             std::pair<int, int> key = {chunkX, chunkZ};
 
             if (!activeChunk.contains(key)) {
-                generator.generateChunk(chunkX, chunkZ);
-                tCHUNK chunk = generator.addFaces(chunkX, chunkZ);
-                activeChunk[key] = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
+                Chunk chunk;
+                generator.generateChunk(chunk, chunkX, chunkZ);
+                tCHUNK tchunk = addFaces(chunk, chunkX, chunkZ);
+                activeChunk[key] = std::make_unique<Mesh>(tchunk, 3, GL_STATIC_DRAW);
                 // activeChunk.emplace(key, std::make_unique<Mesh>(chunk, 3u, GL_STATIC_DRAW));
             }
         }
     }
 }
 
-// TODO:: need to unload chunks that are futher than render distance
 void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
     for (auto it = activeChunk.begin(); it != activeChunk.end();) {
         int chunkX = it->first.first;
@@ -53,4 +53,52 @@ void ChunkManager::render(Shader &shader) {
         shader.setMat4("model", model);
         mesh->draw();
     }
+}
+
+tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
+
+    tCHUNK chunk;
+    int vertexOffset{};
+    int chunkSize = 16;
+
+    for (int z = 0; z < chunkSize; z++) {
+        for (int x = 0; x < chunkSize; x++) {
+            for (int y = 0; y <= _chunk.heightMap[x][z]; y++) {
+                glm::vec3 pos(chunkX * chunkSize + x - 1.0f, // world X
+                              y,
+                              chunkZ * chunkSize + z - 1.0f // world Z
+                );
+                if (y == _chunk.heightMap[x][z]) // top
+                    addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
+
+                if (y == 0) // bottom
+                    addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
+
+                if (x == 0 || y > _chunk.heightMap[x - 1][z]) // left
+                    addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
+
+                if (x == chunkSize - 1 || y > _chunk.heightMap[x + 1][z]) // right
+                    addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
+
+                if (z == 0 || y > _chunk.heightMap[x][z - 1]) // front
+                    addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
+
+                if (z == chunkSize - 1 || y > _chunk.heightMap[x][z + 1]) // back
+                    addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
+            }
+        }
+    }
+    return chunk;
+}
+
+void ChunkManager::addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset) {
+    for (int i = 0; i < 4; i++) {
+        chunk.vertices.push_back(cubeFaceVertices[face][i].x + pos.x);
+        chunk.vertices.push_back(cubeFaceVertices[face][i].y + pos.y);
+        chunk.vertices.push_back(cubeFaceVertices[face][i].z + pos.z);
+    }
+    for (int i = 0; i < 6; i++) {
+        chunk.indices.push_back(cubeFaceIndices[i] + vertexOffset);
+    }
+    vertexOffset += 4; // 4 vertices per face
 }

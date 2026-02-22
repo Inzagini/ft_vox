@@ -18,8 +18,10 @@ class ChunkManager {
     void render(Shader &shader);
     void unload(const int chunkX, const int chunkZ);
     void update(const glm::vec3 &pos);
+    tCHUNK addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
 
   private:
+    void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);
     struct pairHash {
         std::size_t operator()(const std::pair<int, int> &p) const noexcept {
             std::size_t h1 = std::hash<int>{}(p.first);
