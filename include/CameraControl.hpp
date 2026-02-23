@@ -21,5 +21,5 @@ class CameraControl {
 
   private:
     Camera &camera;
-    float cameraSpeed{0.5f};
+    float cameraSpeed{1.0f};
 };

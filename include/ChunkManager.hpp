@@ -17,10 +17,11 @@ class ChunkManager {
     void render(Shader &shader);
     void unload(const int chunkX, const int chunkZ);
     void update(const glm::vec3 &pos);
-    tCHUNK addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
-    void Meshing(const int chunkX, const int chunkZ);
+    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
+    void meshing(const int chunkX, const int chunkZ);
 
   private:
+    void markNeigborChunkDirty(const int chunkX, const int chunkZ);
     void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);
     struct pairHash {
         std::size_t operator()(const std::pair<int, int> &p) const noexcept {
@@ -39,7 +40,7 @@ class ChunkManager {
     ChunkGenerator generator;
     // std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
     std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
-    // TODO: future change in keyhasing a paring bit shifting for cords texture and block type and
-    // map to the mesh
+    // TODO: future change in keyhasing a paring bit shifting for cords texture and block type
+    // and map to the mesh
     std::unordered_map<int64_t, Mesh> testChunk;
 };

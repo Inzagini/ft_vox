@@ -2,6 +2,15 @@
 #include "CubeData.hpp"
 #include <memory>
 
+void ChunkManager::update(const glm::vec3 &pos) {
+    int chunkX = floor(pos.x / 16);
+    int chunkZ = floor(pos.z / 16);
+
+    createChunk(chunkX, chunkZ);
+    meshing(chunkX, chunkZ);
+    unload(chunkX, chunkZ);
+}
+
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
     for (int dx = -renderDistance; dx <= renderDistance; dx++) {
@@ -20,7 +29,8 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
                     !activeChunk.contains({chunkX, chunkZ + 1}))
                     chunk.dirty = true;
 
-                tCHUNK tchunk = addFaces(chunk, chunkX, chunkZ);
+                activeChunk[key] = std::move(chunk);
+                markNeigborChunkDirty(chunkX, chunkZ);
             }
         }
     }
@@ -39,13 +49,14 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
     }
 }
 
-void ChunkManager::update(const glm::vec3 &pos) {
-    int chunkX = floor(pos.x / 16);
-    int chunkZ = floor(pos.z / 16);
+void ChunkManager::meshing(const int chunkX, const int chunkZ) {
 
-    createChunk(chunkX, chunkZ);
-
-    unload(chunkX, chunkZ);
+    for (auto &[key, chunk] : activeChunk) {
+        if (chunk.mesh == nullptr || chunk.dirty) {
+            addFaces(chunk, key.first, key.second);
+            chunk.dirty = false;
+        }
+    }
 }
 
 void ChunkManager::render(Shader &shader) {
@@ -60,12 +71,7 @@ void ChunkManager::render(Shader &shader) {
     }
 }
 
-void ChunkManager::Meshing(const int chunkX, const int chunkZ) {
-
-    // if (activeChunk.contains(Chunk)
-}
-
-tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
+void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
 
     tCHUNK chunk;
     int vertexOffset{};
@@ -147,8 +153,6 @@ tCHUNK ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ)
         }
     }
     _chunk.mesh = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
-    activeChunk[{chunkX, chunkZ}] = std::move(_chunk);
-    return chunk;
 }
 
 void ChunkManager::addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset) {
@@ -161,4 +165,14 @@ void ChunkManager::addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexO
         chunk.indices.push_back(cubeFaceIndices[i] + vertexOffset);
     }
     vertexOffset += 4; // 4 vertices per face
+}
+
+void ChunkManager::markNeigborChunkDirty(const int chunkX, const int chunkZ) {
+    std::pair<int, int> neighbor[4] = {
+        {chunkX - 1, chunkZ}, {chunkX + 1, chunkZ}, {chunkX, chunkZ - 1}, {chunkX, chunkZ + 1}};
+
+    for (auto &key : neighbor) {
+        if (activeChunk.contains(key))
+            activeChunk[key].dirty = true;
+    }
 }
