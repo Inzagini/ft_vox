@@ -8,19 +8,18 @@
 #include <unordered_map>
 #include <utility>
 
-using keyHash = long long;
-
 class ChunkManager {
   public:
     ChunkManager(const int seed) : seed(seed), generator(seed) {}
     void createChunk(const int chunkX, const int chunkZ);
-    void render(Shader &shader);
+    void render(Shader &shader, const glm::vec3 &playerPos);
     void unload(const int chunkX, const int chunkZ);
     void update(const glm::vec3 &pos);
     void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
     void meshing(const int chunkX, const int chunkZ);
 
   private:
+    bool isNeighborBlockAir();
     void markNeigborChunkDirty(const int chunkX, const int chunkZ);
     void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);
     struct pairHash {
@@ -31,16 +30,13 @@ class ChunkManager {
         }
     };
 
-    int64_t makeKey(int x, int z) { return (int64_t(x) << 32) | uint32_t(z); }
-
   private:
-    glm::vec3 playerPos;
-    int seed;
-    int renderDistance{10};
+    const int seed;
+    const int renderDistance{10};
+    const int chunkSize{16};
     ChunkGenerator generator;
-    // std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
     std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
+
     // TODO: future change in keyhasing a paring bit shifting for cords texture and block type
-    // and map to the mesh
-    std::unordered_map<int64_t, Mesh> testChunk;
+    // and map to the mesh std::unordered_map<int64_t, Mesh> testChunk;
 };

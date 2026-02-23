@@ -5,19 +5,6 @@ void CameraControl::handleKeyboardInput(InputAction action) {
     glm::vec3 flatFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
     glm::vec3 cameraPos = camera.getPos();
 
-    // if (action == InputAction::MOVE_FORWARD)
-    //     cameraPos += cameraSpeed * flatFront;
-    // if (action == InputAction::MOVE_BACKWARD)
-    //     cameraPos -= cameraSpeed * flatFront;
-    // if (action == InputAction::MOVE_LEFT)
-    //     cameraPos -= glm::normalize(glm::cross(cameraFront, camera.getUp())) * cameraSpeed;
-    // if (action == InputAction::MOVE_RIGHT)
-    //     cameraPos += glm::normalize(glm::cross(cameraFront, camera.getUp())) * cameraSpeed;
-    // if (action == InputAction::MOVE_FLY_UP)
-    //     cameraPos += cameraSpeed * glm::vec3{0, 1, 0};
-    // if (action == InputAction::MOVE_FLY_DOWN)
-    //     cameraPos -= cameraSpeed * glm::vec3{0, 1, 0};
-
     switch (action) {
     case InputAction::MOVE_FORWARD:
         cameraPos += cameraSpeed * flatFront;

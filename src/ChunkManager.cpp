@@ -1,6 +1,4 @@
 #include "ChunkManager.hpp"
-#include "CubeData.hpp"
-#include <memory>
 
 void ChunkManager::update(const glm::vec3 &pos) {
     int chunkX = floor(pos.x / 16);
@@ -59,13 +57,20 @@ void ChunkManager::meshing(const int chunkX, const int chunkZ) {
     }
 }
 
-void ChunkManager::render(Shader &shader) {
+void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos) {
+
+    int playerChunkX = floor(playerPos.x / 16);
+    int playerChunkZ = floor(playerPos.z / 16);
 
     for (auto &[key, chunk] : activeChunk) {
+        int relativeChunkX = key.first - playerChunkX;
+        int relativeChunkZ = key.second - playerChunkZ;
+
         glm::mat4 model = glm::mat4(1.0f);
 
         // Offset the chunk in world space (assuming chunk size = 16)
-        model = glm::translate(model, glm::vec3(key.first, 0.0f, key.second));
+        model = glm::translate(
+            model, glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize));
         shader.setMat4("model", model);
         chunk.mesh->draw();
     }
@@ -75,15 +80,15 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
 
     tCHUNK chunk;
     int vertexOffset{};
-    int chunkSize = 16;
 
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y <= _chunk.heightMap[x][z] + 1; y++) {
-                glm::vec3 pos(chunkX * (chunkSize - 1) + x, // world X
-                              y,
-                              chunkZ * (chunkSize - 1) + z // world Z
-                );
+                // glm::vec3 pos(chunkX * (chunkSize - 1) + x, // world X
+                //               y,
+                //               chunkZ * (chunkSize - 1) + z // world Z
+                // );
+                glm::vec3 pos(x, y, z);
 
                 if (_chunk.block[x][y][z] != CubeType::SOLID)
                     continue;
