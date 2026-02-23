@@ -5,7 +5,7 @@
 #include <memory>
 
 struct Chunk {
-    CubeType block[16][256][16];
+    CubeType block[16][16][256];
     int heightMap[16][16];
     // std::vector<std::vector<int>> heightMap{16, std::vector<int>(16)};
     std::unique_ptr<Mesh> mesh = nullptr;

@@ -83,32 +83,28 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
 
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
-            for (int y = 0; y <= _chunk.heightMap[x][z] + 1; y++) {
-                // glm::vec3 pos(chunkX * (chunkSize - 1) + x, // world X
-                //               y,
-                //               chunkZ * (chunkSize - 1) + z // world Z
-                // );
+            for (int y = 0; y < 256; y++) {
                 glm::vec3 pos(x, y, z);
 
-                if (_chunk.block[x][y][z] != CubeType::SOLID)
+                if (_chunk.block[x][z][y] != CubeType::SOLID)
                     continue;
 
-                if (_chunk.block[x][y + 1][z] == CubeType::AIR) // top
+                if (_chunk.block[x][z][y + 1] == CubeType::AIR) // top
                     addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
 
-                if (y != 0 && _chunk.block[x][y - 1][z] == CubeType::AIR) // bottom
+                if (y != 0 && _chunk.block[x][z][y - 1] == CubeType::AIR) // bottom
                     addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
 
-                if (x > 0 && _chunk.block[x - 1][y][z] == CubeType::AIR) // left
+                if (x > 0 && _chunk.block[x - 1][z][y] == CubeType::AIR) // left
                     addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
 
-                if (x < chunkSize - 1 && _chunk.block[x + 1][y][z] == CubeType::AIR) // right
+                if (x < chunkSize - 1 && _chunk.block[x + 1][z][y] == CubeType::AIR) // right
                     addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
 
-                if (z > 0 && _chunk.block[x][y][z - 1] == CubeType::AIR) // front
+                if (z > 0 && _chunk.block[x][z - 1][y] == CubeType::AIR) // front
                     addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
 
-                if (z < chunkSize - 1 && _chunk.block[x][y][z + 1] == CubeType::AIR) // back
+                if (z < chunkSize - 1 && _chunk.block[x][z + 1][y] == CubeType::AIR) // back
                     addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
 
                 if (x == 0) { // left on border
@@ -117,7 +113,7 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                     if (activeChunk.contains(key)) {
                         Chunk &neighborChunk = activeChunk[key];
 
-                        if (neighborChunk.block[15][y][z] == CubeType::AIR)
+                        if (neighborChunk.block[15][z][y] == CubeType::AIR)
                             addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
                     }
                 }
@@ -128,7 +124,7 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                     if (activeChunk.contains(key)) {
                         Chunk &neighborChunk = activeChunk[key];
 
-                        if (neighborChunk.block[0][y][z] == CubeType::AIR)
+                        if (neighborChunk.block[0][z][y] == CubeType::AIR)
                             addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
                     }
                 }
@@ -139,7 +135,7 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                     if (activeChunk.contains(key)) {
                         Chunk &neighborChunk = activeChunk[key];
 
-                        if (neighborChunk.block[x][y][15] == CubeType::AIR)
+                        if (neighborChunk.block[x][15][y] == CubeType::AIR)
                             addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
                     }
                 }
@@ -150,7 +146,7 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                     if (activeChunk.contains(key)) {
                         Chunk &neighborChunk = activeChunk[key];
 
-                        if (neighborChunk.block[x][y][0] == CubeType::AIR)
+                        if (neighborChunk.block[x][0][y] == CubeType::AIR)
                             addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
                     }
                 }

@@ -14,9 +14,9 @@ void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chu
 
             for (int y = 0; y < 256; y++) {
                 if (y <= height)
-                    chunk.block[x][y][z] = CubeType::SOLID;
+                    chunk.block[x][z][y] = CubeType::SOLID;
                 else {
-                    chunk.block[x][y][z] = CubeType::AIR;
+                    chunk.block[x][z][y] = CubeType::AIR;
                 }
             }
         }
