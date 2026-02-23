@@ -36,7 +36,7 @@ class ChunkManager {
   private:
     glm::vec3 playerPos;
     int seed;
-    int renderDistance{5};
+    int renderDistance{10};
     ChunkGenerator generator;
     // std::unordered_map<std::pair<int, int>, std::unique_ptr<Mesh>, pairHash> activeChunk;
     std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
