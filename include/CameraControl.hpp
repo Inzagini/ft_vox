@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Camera.hpp"
-#include <GLFW/glfw3.h>
 
 enum class InputAction {
     MOVE_FORWARD,
@@ -17,7 +16,8 @@ class CameraControl {
     CameraControl(Camera &cam) : camera(cam) {}
     void handleKeyboardInput(InputAction);
     void handleMouseMovement(float xoffset, float yoffset);
-    glm::vec3 getCameraPos() { return camera.getPos(); }
+    glm::vec3 getCameraPos() const { return camera.getPos(); }
+    float getYaw() const { return camera.getYaw(); }
 
   private:
     Camera &camera;

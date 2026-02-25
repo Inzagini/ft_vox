@@ -23,17 +23,17 @@ class Camera {
         return glm::perspective(glm::radians(fov), aspectRatio, near, far);
     }
 
-    glm::vec3 getFront() { return front; }
+    glm::vec3 getFront() const { return front; }
     void setFront(const glm::vec3 &v) { front = v; }
-    glm::vec3 getUp() { return up; }
+    glm::vec3 getUp() const { return up; }
 
     void move(const glm::vec3 &v) { position = v; }
     glm::vec3 getPos() const { return position; }
 
-    float getYaw() { return yaw; }
+    float getYaw() const { return yaw; }
     void setYaw(const float &n) { yaw = n; }
 
-    float getPitch() { return pitch; }
+    float getPitch() const { return pitch; }
     void setPitch(const float &n) { pitch = n; }
 
   private:

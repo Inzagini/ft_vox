@@ -1,10 +1,7 @@
 #pragma once
 
 #include "ChunkGenerator.hpp"
-#include "Mesh.hpp"
 #include "Shader.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include <iostream>
 #include <unordered_map>
 #include <utility>
 

@@ -1,11 +1,7 @@
 #pragma once
 
 #include "ChunkData.hpp"
-#include "CubeData.hpp"
-#include "Mesh.hpp"
 #include "PerlinNoise.hpp"
-#include "glm/glm.hpp"
-#include <algorithm>
 #include <iostream>
 
 class ChunkGenerator {
