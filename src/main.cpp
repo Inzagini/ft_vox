@@ -11,6 +11,7 @@ bool zKeyPressed = false;
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 
+// TODO:: need to be put in seperate class
 void processInput(GLFWwindow *window, CameraControl &cameraControler) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -34,6 +35,7 @@ void processInput(GLFWwindow *window, CameraControl &cameraControler) {
         std::cout << "Current position: " << pos.x << " | " << pos.z << '\n';
     }
 
+    // TODO:: need to put in to CameraControl class
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetWindowUserPointer(window, &cameraControler); // pass camera Controler to the window
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -65,7 +67,7 @@ int main() {
 
     Camera camera;
     CameraControl camControl(camera);
-    ChunkManager chunkManager(213);
+    ChunkManager chunkManager(21323);
 
     while (!glfwWindowShouldClose(window.get())) {
 
@@ -92,6 +94,7 @@ int main() {
     return 0;
 }
 
+// TODO:: need to be put into cameraControl class
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
     static CameraControl *controler =
         reinterpret_cast<CameraControl *>(glfwGetWindowUserPointer(window));

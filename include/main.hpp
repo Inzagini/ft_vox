@@ -12,12 +12,7 @@
 #include "PerlinNoise.hpp"
 #include "Shader.hpp"
 #include "Window.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/geometric.hpp"
-#include "glm/glm.hpp"
-#include <GL/gl.h>
 #include <iostream>
-#include <vector>
 
 void processInput(GLFWwindow *window);
 
