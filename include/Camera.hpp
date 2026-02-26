@@ -36,8 +36,10 @@ class Camera {
     float getPitch() const { return pitch; }
     void setPitch(const float &n) { pitch = n; }
 
+    float getFOV() const { return fov; }
+
   private:
-    glm::dvec3 position{100000.0f, 50.8f, 100000.0f};
+    glm::dvec3 position{0.0f, 50.8f, 0.0f};
     glm::vec3 front{0.0f, 0.0f, -1.0f};
     glm::vec3 up{0.0f, 1.0f, 0.0f};
     float yaw{-90.0f}; // yaw is initialized to -90.0 degrees

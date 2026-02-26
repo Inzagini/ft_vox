@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Camera.hpp"
 #include "ChunkGenerator.hpp"
 #include "Shader.hpp"
+#include "glm/geometric.hpp"
+#include "glm/trigonometric.hpp"
 #include <unordered_map>
 #include <utility>
 
@@ -9,9 +12,9 @@ class ChunkManager {
   public:
     ChunkManager(const int seed) : seed(seed), generator(seed) {}
     void createChunk(const int chunkX, const int chunkZ);
-    void render(Shader &shader, const glm::vec3 &playerPos);
+    void render(Shader &shader, const glm::vec3 &playerPos, const Camera &camera);
     void unload(const int chunkX, const int chunkZ);
-    void update(const glm::vec3 &pos);
+    void update(const Camera &camera);
     void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
     void meshing(const int chunkX, const int chunkZ);
 

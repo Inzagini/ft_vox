@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
 static constexpr float SCR_WIDTH{1920};

@@ -44,6 +44,11 @@ void CameraControl::handleMouseMovement(float xoffset, float yoffset) {
     if (pitch < -89.0f)
         pitch = -89.0f;
 
+    if (yaw > 360)
+        yaw = 0;
+    if (yaw < -360)
+        yaw = 0;
+
     camera.setPitch(pitch);
     camera.setYaw(yaw);
 

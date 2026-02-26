@@ -84,8 +84,8 @@ int main() {
         shader.setMat4("projection", camera.getProjection());
         shader.setMat4("view", camera.getViewMat());
 
-        chunkManager.update(camera.getPos());
-        chunkManager.render(shader, camera.getPos());
+        chunkManager.update(camera);
+        chunkManager.render(shader, camera.getPos(), camera);
 
         glfwSwapBuffers(window.get());
         glfwPollEvents();

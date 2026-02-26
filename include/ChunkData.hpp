@@ -4,6 +4,11 @@
 #include "Mesh.hpp"
 #include <memory>
 
+struct ChunkData {
+    CubeType block[16][16][256];
+    int heightMap[16][16];
+};
+
 struct Chunk {
     CubeType block[16][16][256];
     int heightMap[16][16];

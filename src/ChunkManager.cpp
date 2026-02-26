@@ -1,10 +1,12 @@
 #include "ChunkManager.hpp"
 
-void ChunkManager::update(const glm::vec3 &pos) {
+void ChunkManager::update(const Camera &camera) {
+    glm::vec3 pos = camera.getPos();
     int chunkX = floor(pos.x / 16);
     int chunkZ = floor(pos.z / 16);
 
     createChunk(chunkX, chunkZ);
+
     meshing(chunkX, chunkZ);
     unload(chunkX, chunkZ);
 }
@@ -27,7 +29,7 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
                     !activeChunk.contains({chunkX, chunkZ + 1}))
                     chunk.dirty = true;
 
-                activeChunk[key] = std::move(chunk);
+                activeChunk.try_emplace(key, std::move(chunk));
                 markNeigborChunkDirty(chunkX, chunkZ);
             }
         }
@@ -50,29 +52,36 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
 void ChunkManager::meshing(const int chunkX, const int chunkZ) {
 
     for (auto &[key, chunk] : activeChunk) {
-        if (chunk.mesh == nullptr || chunk.dirty) {
+        if (chunk.dirty) {
             addFaces(chunk, key.first, key.second);
             chunk.dirty = false;
         }
     }
 }
 
-void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos) {
+void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, const Camera &camera) {
 
-    int playerChunkX = floor(playerPos.x / 16);
-    int playerChunkZ = floor(playerPos.z / 16);
+    const int playerChunkX = floor(playerPos.x / 16);
+    const int playerChunkZ = floor(playerPos.z / 16);
+    const float halfFOV = (float)camera.getFOV() / 2;
+    glm::vec3 cameraFront = camera.getFront();
+    glm::vec3 flatFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
 
     for (auto &[key, chunk] : activeChunk) {
-        int relativeChunkX = key.first - playerChunkX;
-        int relativeChunkZ = key.second - playerChunkZ;
 
-        glm::mat4 model = glm::mat4(1.0f);
+        const int relativeChunkX = key.first - playerChunkX;
+        const int relativeChunkZ = key.second - playerChunkZ;
 
-        // Offset the chunk in world space (assuming chunk size = 16)
-        model = glm::translate(
-            model, glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize));
-        shader.setMat4("model", model);
-        chunk.mesh->draw();
+        const glm::vec3 chunkPos =
+            glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize);
+        const glm::vec3 chunkNorm = glm::normalize(chunkPos);
+        const float dot = glm::dot(flatFront, chunkNorm);
+
+        if (dot > cos(halfFOV)) {
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
+            shader.setMat4("model", model);
+            chunk.mesh->draw();
+        }
     }
 }
 
