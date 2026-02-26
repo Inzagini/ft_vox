@@ -14,7 +14,7 @@ class ChunkGenerator {
     PerlinNoise terrainNoise;
     const float scale{0.01f};
     const float heightMultiplier{50.0f};
-    const float baseHeight{5.0f};
+    const float baseHeight{25.0f};
     const int chunkSize{16};
     unsigned int seed;
 };

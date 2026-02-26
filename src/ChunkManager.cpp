@@ -12,8 +12,8 @@ void ChunkManager::update(Camera &camera) {
 
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
-    for (int dx = -renderDistance; dx <= renderDistance; dx++) {
-        for (int dz = -renderDistance; dz <= renderDistance; dz++) {
+    for (int dx = -loadDistance; dx <= loadDistance; dx++) {
+        for (int dz = -loadDistance; dz <= loadDistance; dz++) {
             int chunkX = playerChunkX + dx;
             int chunkZ = playerChunkZ + dz;
             std::pair<int, int> key = {chunkX, chunkZ};
@@ -39,8 +39,8 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
     for (auto it = activeChunk.begin(); it != activeChunk.end();) {
         int chunkX = it->first.first;
         int chunkZ = it->first.second;
-        if (abs(chunkX - playerChunkX) > renderDistance ||
-            abs(chunkZ - playerChunkZ) > renderDistance) {
+        if (abs(chunkX - playerChunkX) > loadDistance ||
+            abs(chunkZ - playerChunkZ) > loadDistance) {
             it = activeChunk.erase(it); // safely remove outside chunk
         } else {
             ++it;
@@ -70,7 +70,8 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
         const glm::vec3 chunkPos =
             glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize);
 
-        if (camera.isInFOV(key.first, key.second)) {
+        if (abs(relativeChunkX) <= renderDistance && abs(relativeChunkZ) <= renderDistance &&
+            camera.isInFOV(key.first, key.second)) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
             shader.setMat4("model", model);
             chunk.mesh->draw();

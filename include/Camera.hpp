@@ -49,8 +49,12 @@ class Camera {
         const int relativeChunkX = chunkX - playerChunkX;
         const int relativeChunkZ = chunkZ - playerChunkZ;
 
-        const glm::vec3 chunkPos =
-            glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize);
+        const glm::vec3 chunkPos = glm::vec3(relativeChunkX * chunkSize + chunkSize * 0.5f, 0.0f,
+                                             relativeChunkZ * chunkSize + chunkSize * 0.5f);
+
+        if (chunkPos == glm::vec3(0.0f))
+            return true;
+
         const glm::vec3 chunkNorm = glm::normalize(chunkPos);
         const float dot = glm::dot(flatFront, chunkNorm);
 
