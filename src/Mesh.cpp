@@ -31,6 +31,18 @@ Mesh::Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int dra
 
     // glBindVertexArray(0);
 }
+
+Mesh &Mesh::operator=(Mesh other) {
+    if (this != &other) {
+        m_VAO = other.m_VAO;
+        m_VBO = other.m_VBO;
+        m_EBO = other.m_EBO;
+        index_count = other.index_count;
+        vertex_count = other.vertex_count;
+    }
+    return *this;
+}
+
 Mesh::Mesh(Mesh &&other) noexcept
     : m_VAO(other.m_VAO), m_VBO(other.m_VBO), m_EBO(other.m_EBO), index_count(other.index_count),
       vertex_count(other.vertex_count) {

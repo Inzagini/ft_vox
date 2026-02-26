@@ -19,6 +19,7 @@ class Camera {
         glm::mat4 view = glm::lookAt(relativeCamPos, relativeCamPos + front, up);
         return view;
     }
+
     glm::mat4 getProjection() const {
         return glm::perspective(glm::radians(fov), aspectRatio, near, far);
     }
@@ -37,6 +38,24 @@ class Camera {
     void setPitch(const float &n) { pitch = n; }
 
     float getFOV() const { return fov; }
+
+    bool isInFOV(const int chunkX, const int chunkZ) {
+        const int chunkSize = 16;
+        const int playerChunkX = floor(position.x / 16);
+        const int playerChunkZ = floor(position.z / 16);
+        const float halfFOV = fov / 2;
+        glm::vec3 flatFront = glm::normalize(glm::vec3(front.x, 0, front.z));
+
+        const int relativeChunkX = chunkX - playerChunkX;
+        const int relativeChunkZ = chunkZ - playerChunkZ;
+
+        const glm::vec3 chunkPos =
+            glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize);
+        const glm::vec3 chunkNorm = glm::normalize(chunkPos);
+        const float dot = glm::dot(flatFront, chunkNorm);
+
+        return dot > cos(halfFOV);
+    }
 
   private:
     glm::dvec3 position{0.0f, 50.8f, 0.0f};

@@ -10,13 +10,15 @@
 
 class ChunkManager {
   public:
-    ChunkManager(const int seed) : seed(seed), generator(seed) {}
+    ChunkManager(const int seed) : seed(seed), generator(seed) {
+        activeChunk.reserve(renderDistance * renderDistance);
+    }
     void createChunk(const int chunkX, const int chunkZ);
-    void render(Shader &shader, const glm::vec3 &playerPos, const Camera &camera);
+    void render(Shader &shader, const glm::vec3 &playerPos, Camera &camera);
     void unload(const int chunkX, const int chunkZ);
-    void update(const Camera &camera);
+    void update(Camera &camera);
     void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
-    void meshing(const int chunkX, const int chunkZ);
+    void meshing(const int chunkX, const int chunkZ, Camera &camera);
 
   private:
     bool isNeighborBlockAir();
@@ -30,6 +32,13 @@ class ChunkManager {
         }
     };
 
+    uint64_t makeHash(const int chunkX, const int chunkZ) {
+        return (static_cast<uint64_t>(chunkX) << 32 | static_cast<uint32_t>(chunkZ));
+    }
+
+    int getXFromHash(uint64_t hash) { return static_cast<int>(hash >> 32); }
+    int getZFromHash(uint64_t hash) { return static_cast<int>(hash & 0xFFFFFFFFULL); }
+
   private:
     const int seed;
     const int renderDistance{10};
@@ -38,5 +47,5 @@ class ChunkManager {
     std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
 
     // TODO: future change in keyhasing a paring bit shifting for cords texture and block type
-    // and map to the mesh std::unordered_map<int64_t, Mesh> testChunk;
+    std::vector<std::pair<uint64_t, Mesh>> meshedChunk;
 };

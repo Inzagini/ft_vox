@@ -1,13 +1,12 @@
 #include "ChunkManager.hpp"
 
-void ChunkManager::update(const Camera &camera) {
+void ChunkManager::update(Camera &camera) {
     glm::vec3 pos = camera.getPos();
     int chunkX = floor(pos.x / 16);
     int chunkZ = floor(pos.z / 16);
 
     createChunk(chunkX, chunkZ);
-
-    meshing(chunkX, chunkZ);
+    meshing(chunkX, chunkZ, camera);
     unload(chunkX, chunkZ);
 }
 
@@ -49,47 +48,39 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
     }
 }
 
-void ChunkManager::meshing(const int chunkX, const int chunkZ) {
+void ChunkManager::meshing(const int chunkX, const int chunkZ, Camera &camera) {
 
     for (auto &[key, chunk] : activeChunk) {
-        if (chunk.dirty) {
+        if ((chunk.mesh == nullptr || chunk.dirty) && camera.isInFOV(key.first, key.second)) {
             addFaces(chunk, key.first, key.second);
             chunk.dirty = false;
         }
     }
 }
 
-void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, const Camera &camera) {
+void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &camera) {
 
     const int playerChunkX = floor(playerPos.x / 16);
     const int playerChunkZ = floor(playerPos.z / 16);
-    const float halfFOV = (float)camera.getFOV() / 2;
-    glm::vec3 cameraFront = camera.getFront();
-    glm::vec3 flatFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
 
     for (auto &[key, chunk] : activeChunk) {
 
         const int relativeChunkX = key.first - playerChunkX;
         const int relativeChunkZ = key.second - playerChunkZ;
-
         const glm::vec3 chunkPos =
             glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize);
-        const glm::vec3 chunkNorm = glm::normalize(chunkPos);
-        const float dot = glm::dot(flatFront, chunkNorm);
 
-        if (dot > cos(halfFOV)) {
+        if (camera.isInFOV(key.first, key.second)) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
             shader.setMat4("model", model);
             chunk.mesh->draw();
         }
     }
 }
-
 void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
 
     tCHUNK chunk;
     int vertexOffset{};
-
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
             for (int y = 0; y < 256; y++) {
