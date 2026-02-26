@@ -21,9 +21,10 @@ class ChunkManager {
     void meshing(const int chunkX, const int chunkZ, Camera &camera);
 
   private:
+    void greedyMesh(Chunk &_chunk);
     bool isNeighborBlockAir();
     void markNeigborChunkDirty(const int chunkX, const int chunkZ);
-    void addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset);
+    void addFace(glm::vec3 &pos, int face, tMesh &chunk, int &vertexOffset);
     struct pairHash {
         std::size_t operator()(const std::pair<int, int> &p) const noexcept {
             std::size_t h1 = std::hash<int>{}(p.first);

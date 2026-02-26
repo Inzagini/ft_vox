@@ -80,7 +80,7 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
 }
 void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
 
-    tCHUNK chunk;
+    tMesh chunk;
     int vertexOffset{};
     for (int z = 0; z < chunkSize; z++) {
         for (int x = 0; x < chunkSize; x++) {
@@ -157,7 +157,7 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
     _chunk.mesh = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
 }
 
-void ChunkManager::addFace(glm::vec3 &pos, int face, tCHUNK &chunk, int &vertexOffset) {
+void ChunkManager::addFace(glm::vec3 &pos, int face, tMesh &chunk, int &vertexOffset) {
     for (int i = 0; i < 4; i++) {
         chunk.vertices.push_back(cubeFaceVertices[face][i].x + pos.x);
         chunk.vertices.push_back(cubeFaceVertices[face][i].y + pos.y);

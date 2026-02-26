@@ -4,14 +4,14 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-struct tCHUNK {
+struct tMesh {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 };
 
 class Mesh {
   public:
-    Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int drawType);
+    Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int drawType);
     Mesh &operator=(Mesh);
     Mesh(Mesh &&other) noexcept;
     Mesh &operator=(Mesh &&other) noexcept;

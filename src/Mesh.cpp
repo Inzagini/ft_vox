@@ -1,6 +1,6 @@
 #include "Mesh.hpp"
 
-Mesh::Mesh(const tCHUNK &chunk, const unsigned int &size, const unsigned int drawType) {
+Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int drawType) {
     index_count = chunk.indices.size();
     vertex_count = chunk.vertices.size() / 3;
 
