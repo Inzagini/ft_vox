@@ -6,6 +6,7 @@
 #include "CameraControl.hpp"
 #include "ChunkManager.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 #include "Window.hpp"
 #include <iostream>
 

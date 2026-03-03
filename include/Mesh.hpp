@@ -19,7 +19,7 @@ class Mesh {
     void draw();
 
   private:
-    unsigned int m_VBO{}, m_VAO{}, m_EBO{};
+    unsigned int _VBO{}, _VAO{}, _EBO{};
     size_t index_count{};
     size_t vertex_count{};
 };

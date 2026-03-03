@@ -1,10 +1,11 @@
 CXX:= g++
 NAME:= ft_vox
-CXXFLAGS:= -std=c++20 -ldl -lglfw -lGL -g -MMD -MP -g
+CXXFLAGS:= -std=c++20 -ldl -lglfw -lGL -MMD -MP -g
 INCLUDES:= -I. -I include -I glad/include
 SRC_DIR:= src
 SRCS:= main.cpp Window.cpp Mesh.cpp Shader.cpp PerlinNoise.cpp \
-	   ChunkGenerator.cpp ChunkManager.cpp CameraControl.cpp 
+	   ChunkGenerator.cpp ChunkManager.cpp CameraControl.cpp  \
+	   Texture.cpp
 OBJ_DIR:= obj
 OBJS = $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 GLAD:= glad/src/glad.c

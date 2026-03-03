@@ -2,7 +2,9 @@
 
 #include "Camera.hpp"
 #include "ChunkGenerator.hpp"
+#include "CubeData.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 #include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
 #include <unordered_map>
@@ -10,21 +12,23 @@
 
 class ChunkManager {
   public:
-    ChunkManager(const int seed) : seed(seed), generator(seed) {
+    ChunkManager(const int seed, TextureRegistry &texture)
+        : seed(seed), generator(seed), texture(texture) {
         activeChunk.reserve(renderDistance * renderDistance);
     }
-    void createChunk(const int chunkX, const int chunkZ);
     void render(Shader &shader, const glm::vec3 &playerPos, Camera &camera);
-    void unload(const int chunkX, const int chunkZ);
     void update(Camera &camera);
-    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
-    void meshing(const int chunkX, const int chunkZ, Camera &camera);
 
   private:
+    void createChunk(const int chunkX, const int chunkZ);
+    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
+    void unload(const int chunkX, const int chunkZ);
+    void meshing(const int chunkX, const int chunkZ, Camera &camera);
     void greedyMesh(Chunk &_chunk);
     bool isNeighborBlockAir();
     void markNeigborChunkDirty(const int chunkX, const int chunkZ);
-    void addFace(glm::vec3 &pos, int face, tMesh &chunk, int &vertexOffset);
+    void addFace(const glm::vec3 &pos, const CubeType &type, CubeFace face, tMesh &chunk,
+                 int &vertexOffset);
     struct pairHash {
         std::size_t operator()(const std::pair<int, int> &p) const noexcept {
             std::size_t h1 = std::hash<int>{}(p.first);
@@ -41,12 +45,13 @@ class ChunkManager {
     int getZFromHash(uint64_t hash) { return static_cast<int>(hash & 0xFFFFFFFFULL); }
 
   private:
+    ChunkGenerator generator;
+    std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
     const int seed;
     const int renderDistance{10};
     const int loadDistance{renderDistance + 2};
     const int chunkSize{16};
-    ChunkGenerator generator;
-    std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
+    TextureRegistry &texture;
 
     // TODO: future change in keyhasing a paring bit shifting for cords texture and block type
     std::vector<std::pair<uint64_t, Mesh>> meshedChunk;

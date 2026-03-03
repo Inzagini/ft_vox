@@ -59,6 +59,7 @@ void processInput(GLFWwindow *window, CameraControl &cameraControler) {
 int main() {
     Window window;
     Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+    TextureRegistry texture;
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window.get(), &fbWidth, &fbHeight);
@@ -71,7 +72,8 @@ int main() {
 
     Camera camera;
     CameraControl camControl(camera);
-    ChunkManager chunkManager(21323);
+    int seed = 21323;
+    ChunkManager chunkManager(seed, texture);
 
     while (!glfwWindowShouldClose(window.get())) {
 
@@ -87,6 +89,10 @@ int main() {
         shader.use();
         shader.setMat4("projection", camera.getProjection());
         shader.setMat4("view", camera.getViewMat());
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture.getTextureID()); // ID from glGenTextures
+        shader.setInt("atlas", 0);
 
         chunkManager.update(camera);
         chunkManager.render(shader, camera.getPos(), camera);

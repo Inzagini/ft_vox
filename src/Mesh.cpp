@@ -4,18 +4,18 @@ Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int draw
     index_count = chunk.indices.size();
     vertex_count = chunk.vertices.size() / 3;
 
-    glGenVertexArrays(1, &m_VAO);
-    glGenBuffers(1, &m_VBO);
+    glGenVertexArrays(1, &_VAO);
+    glGenBuffers(1, &_VBO);
     if (!chunk.indices.empty())
-        glGenBuffers(1, &m_EBO);
+        glGenBuffers(1, &_EBO);
 
-    glBindVertexArray(m_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBindVertexArray(_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, _VBO);
     glBufferData(GL_ARRAY_BUFFER, chunk.vertices.size() * sizeof(float), chunk.vertices.data(),
                  GL_STATIC_DRAW);
 
     if (!chunk.indices.empty()) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk.indices.size() * sizeof(unsigned int),
                      chunk.indices.data(), drawType);
     }
@@ -24,7 +24,7 @@ Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int draw
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    // color attribute
+    // face attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size * sizeof(float),
                           (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
@@ -34,9 +34,9 @@ Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int draw
 
 Mesh &Mesh::operator=(Mesh other) {
     if (this != &other) {
-        m_VAO = other.m_VAO;
-        m_VBO = other.m_VBO;
-        m_EBO = other.m_EBO;
+        _VAO = other._VAO;
+        _VBO = other._VBO;
+        _EBO = other._EBO;
         index_count = other.index_count;
         vertex_count = other.vertex_count;
     }
@@ -44,44 +44,43 @@ Mesh &Mesh::operator=(Mesh other) {
 }
 
 Mesh::Mesh(Mesh &&other) noexcept
-    : m_VAO(other.m_VAO), m_VBO(other.m_VBO), m_EBO(other.m_EBO), index_count(other.index_count),
+    : _VAO(other._VAO), _VBO(other._VBO), _EBO(other._EBO), index_count(other.index_count),
       vertex_count(other.vertex_count) {
-    // m_VAO = other.m_VAO;
-    // m_VBO = other.m_VBO;
-    // m_EBO = other.m_EBO;
-    // index_count = other.index_count;
-    // vertex_count = other.vertex_count;
 
-    other.m_VAO = 0;
-    other.m_VBO = 0;
-    other.m_EBO = 0;
+    other._VAO = 0;
+    other._VBO = 0;
+    other._EBO = 0;
     other.index_count = 0;
     other.vertex_count = 0;
 }
 
 Mesh &Mesh::operator=(Mesh &&other) noexcept {
     if (this != &other) {
-        glDeleteVertexArrays(1, &m_VAO);
-        glDeleteBuffers(1, &m_VBO);
+        glDeleteVertexArrays(1, &_VAO);
+        glDeleteBuffers(1, &_VBO);
 
-        m_VAO = other.m_VAO;
-        m_VBO = other.m_VBO;
+        _VAO = other._VAO;
+        _VBO = other._VBO;
+        _EBO = other._EBO;
 
-        other.m_VAO = 0;
-        other.m_VBO = 0;
+        other._VAO = 0;
+        other._VBO = 0;
+        other._EBO = 0;
     }
     return *this;
 }
 
 Mesh::~Mesh() {
-    glDeleteVertexArrays(1, &m_VAO);
-    glDeleteBuffers(1, &m_VBO);
-    if (m_EBO)
-        glDeleteBuffers(1, &m_EBO);
+    if (_VAO)
+        glDeleteVertexArrays(1, &_VAO);
+    if (_VBO)
+        glDeleteBuffers(1, &_VBO);
+    if (_EBO)
+        glDeleteBuffers(1, &_EBO);
 }
 
 void Mesh::draw() {
-    glBindVertexArray(m_VAO);
+    glBindVertexArray(_VAO);
     if (index_count)
         glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     else

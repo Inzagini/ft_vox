@@ -1,4 +1,7 @@
 #include "ChunkManager.hpp"
+#include "Atlas.hpp"
+#include "CubeData.hpp"
+#include "Texture.hpp"
 
 void ChunkManager::update(Camera &camera) {
     glm::vec3 pos = camera.getPos();
@@ -87,26 +90,26 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
             for (int y = 0; y < 256; y++) {
                 glm::vec3 pos(x, y, z);
 
-                if (_chunk.block[x][z][y] != CubeType::SOLID)
+                if (_chunk.block[x][z][y] == CubeType::AIR)
                     continue;
 
                 if (_chunk.block[x][z][y + 1] == CubeType::AIR) // top
-                    addFace(pos, (int)CubeFace::TOP, chunk, vertexOffset);
+                    addFace(pos, _chunk.block[x][z][y], CubeFace::TOP, chunk, vertexOffset);
 
                 if (y != 0 && _chunk.block[x][z][y - 1] == CubeType::AIR) // bottom
-                    addFace(pos, (int)CubeFace::BOTTOM, chunk, vertexOffset);
+                    addFace(pos, _chunk.block[x][z][y], CubeFace::BOTTOM, chunk, vertexOffset);
 
                 if (x > 0 && _chunk.block[x - 1][z][y] == CubeType::AIR) // left
-                    addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
+                    addFace(pos, _chunk.block[x][z][y], CubeFace::LEFT, chunk, vertexOffset);
 
                 if (x < chunkSize - 1 && _chunk.block[x + 1][z][y] == CubeType::AIR) // right
-                    addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
+                    addFace(pos, _chunk.block[x][z][y], CubeFace::RIGHT, chunk, vertexOffset);
 
                 if (z > 0 && _chunk.block[x][z - 1][y] == CubeType::AIR) // front
-                    addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
+                    addFace(pos, _chunk.block[x][z][y], CubeFace::FRONT, chunk, vertexOffset);
 
                 if (z < chunkSize - 1 && _chunk.block[x][z + 1][y] == CubeType::AIR) // back
-                    addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
+                    addFace(pos, _chunk.block[x][z][y], CubeFace::BACK, chunk, vertexOffset);
 
                 if (x == 0) { // left on border
                     std::pair<int, int> key{chunkX - 1, chunkZ};
@@ -115,7 +118,8 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                         Chunk &neighborChunk = activeChunk[key];
 
                         if (neighborChunk.block[15][z][y] == CubeType::AIR)
-                            addFace(pos, (int)CubeFace::LEFT, chunk, vertexOffset);
+                            addFace(pos, _chunk.block[x][z][y], CubeFace::LEFT, chunk,
+                                    vertexOffset);
                     }
                 }
 
@@ -126,7 +130,8 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                         Chunk &neighborChunk = activeChunk[key];
 
                         if (neighborChunk.block[0][z][y] == CubeType::AIR)
-                            addFace(pos, (int)CubeFace::RIGHT, chunk, vertexOffset);
+                            addFace(pos, _chunk.block[x][z][y], CubeFace::RIGHT, chunk,
+                                    vertexOffset);
                     }
                 }
 
@@ -137,7 +142,8 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                         Chunk &neighborChunk = activeChunk[key];
 
                         if (neighborChunk.block[x][15][y] == CubeType::AIR)
-                            addFace(pos, (int)CubeFace::FRONT, chunk, vertexOffset);
+                            addFace(pos, _chunk.block[x][z][y], CubeFace::FRONT, chunk,
+                                    vertexOffset);
                     }
                 }
 
@@ -148,20 +154,36 @@ void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
                         Chunk &neighborChunk = activeChunk[key];
 
                         if (neighborChunk.block[x][0][y] == CubeType::AIR)
-                            addFace(pos, (int)CubeFace::BACK, chunk, vertexOffset);
+                            addFace(pos, _chunk.block[x][z][y], CubeFace::BACK, chunk,
+                                    vertexOffset);
                     }
                 }
             }
         }
     }
-    _chunk.mesh = std::make_unique<Mesh>(chunk, 3, GL_STATIC_DRAW);
+    _chunk.mesh = std::make_unique<Mesh>(chunk, 5, GL_STATIC_DRAW);
 }
 
-void ChunkManager::addFace(glm::vec3 &pos, int face, tMesh &chunk, int &vertexOffset) {
+void ChunkManager::addFace(const glm::vec3 &pos, const CubeType &type, CubeFace face, tMesh &chunk,
+                           int &vertexOffset) {
+
+    uint8_t iface = static_cast<uint8_t>(face);
+    glm::vec2 tile = texture.getTextureUV(type, face);
+    glm::vec2 tileSize = Atlas::getTileSize();
+
+    glm::vec2 uv0 = tile;
+    glm::vec2 uv1 = tile + glm::vec2(tileSize.x, 0.0f);
+    glm::vec2 uv2 = tile + glm::vec2(tileSize.x, tileSize.y);
+    glm::vec2 uv3 = tile + glm::vec2(0.0f, tileSize.y);
+    glm::vec2 faceUV[4] = {uv0, uv1, uv2, uv3};
+
     for (int i = 0; i < 4; i++) {
-        chunk.vertices.push_back(cubeFaceVertices[face][i].x + pos.x);
-        chunk.vertices.push_back(cubeFaceVertices[face][i].y + pos.y);
-        chunk.vertices.push_back(cubeFaceVertices[face][i].z + pos.z);
+        chunk.vertices.push_back(cubeFaceVertices[iface][i].x + pos.x);
+        chunk.vertices.push_back(cubeFaceVertices[iface][i].y + pos.y);
+        chunk.vertices.push_back(cubeFaceVertices[iface][i].z + pos.z);
+
+        chunk.vertices.push_back(faceUV[i].x);
+        chunk.vertices.push_back(faceUV[i].y);
     }
     for (int i = 0; i < 6; i++) {
         chunk.indices.push_back(cubeFaceIndices[i] + vertexOffset);
