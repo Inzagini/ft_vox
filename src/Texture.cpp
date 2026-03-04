@@ -3,14 +3,15 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void TextureRegistry::setBlockTexture(const uint8_t blockType, const uint16_t textureIndex) {
+constexpr void TextureRegistry::setBlockTexture(const uint8_t blockType,
+                                                const uint16_t textureIndex) {
     for (auto &face : {CubeFace::TOP, CubeFace::BOTTOM, CubeFace::LEFT, CubeFace::RIGHT,
                        CubeFace::FRONT, CubeFace::BACK})
         blockTextures[blockType][static_cast<uint8_t>(face)] = textureIndex;
 }
 
-void TextureRegistry::setBlockTexture(const uint8_t blockType, const uint16_t top,
-                                      const uint16_t bottom, const uint16_t side) {
+constexpr void TextureRegistry::setBlockTexture(const uint8_t blockType, const uint16_t top,
+                                                const uint16_t bottom, const uint16_t side) {
     blockTextures[blockType][static_cast<uint8_t>(CubeFace::TOP)] = top;
     blockTextures[blockType][static_cast<uint8_t>(CubeFace::BOTTOM)] = bottom;
     for (auto &face : {CubeFace::LEFT, CubeFace::RIGHT, CubeFace::FRONT, CubeFace::BACK})
