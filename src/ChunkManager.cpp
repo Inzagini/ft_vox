@@ -15,36 +15,37 @@ void ChunkManager::update(Camera &camera) {
 
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
-    for (int dx = -loadDistance; dx <= loadDistance; dx++) {
-        for (int dz = -loadDistance; dz <= loadDistance; dz++) {
+    for (int dx = -_loadDistance; dx <= _loadDistance; dx++) {
+        for (int dz = -_loadDistance; dz <= _loadDistance; dz++) {
             int chunkX = playerChunkX + dx;
             int chunkZ = playerChunkZ + dz;
             std::pair<int, int> key = {chunkX, chunkZ};
 
-            if (!activeChunk.contains(key)) {
-                Chunk chunk;
-                generator.generateChunk(chunk, chunkX, chunkZ);
+            if (_activeChunk.contains(key))
+                continue;
 
-                if (!activeChunk.contains({chunkX - 1, chunkZ}) ||
-                    !activeChunk.contains({chunkX + 1, chunkZ}) ||
-                    !activeChunk.contains({chunkX, chunkZ - 1}) ||
-                    !activeChunk.contains({chunkX, chunkZ + 1}))
-                    chunk.dirty = true;
+            Chunk chunk;
+            generator.generateChunk(chunk, chunkX, chunkZ);
 
-                activeChunk.try_emplace(key, std::move(chunk));
-                markNeigborChunkDirty(chunkX, chunkZ);
-            }
+            if (!_activeChunk.contains({chunkX - 1, chunkZ}) ||
+                !_activeChunk.contains({chunkX + 1, chunkZ}) ||
+                !_activeChunk.contains({chunkX, chunkZ - 1}) ||
+                !_activeChunk.contains({chunkX, chunkZ + 1}))
+                chunk.dirty = true;
+
+            _activeChunk.try_emplace(key, std::move(chunk));
+            markNeigborChunkDirty(chunkX, chunkZ);
         }
     }
 }
 
 void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
-    for (auto it = activeChunk.begin(); it != activeChunk.end();) {
+    for (auto it = _activeChunk.begin(); it != _activeChunk.end();) {
         int chunkX = it->first.first;
         int chunkZ = it->first.second;
-        if (abs(chunkX - playerChunkX) > loadDistance ||
-            abs(chunkZ - playerChunkZ) > loadDistance) {
-            it = activeChunk.erase(it); // safely remove outside chunk
+        if (abs(chunkX - playerChunkX) > _loadDistance ||
+            abs(chunkZ - playerChunkZ) > _loadDistance) {
+            it = _activeChunk.erase(it); // safely remove outside chunk
         } else {
             ++it;
         }
@@ -53,9 +54,11 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
 
 void ChunkManager::meshing(const int chunkX, const int chunkZ, Camera &camera) {
 
-    for (auto &[key, chunk] : activeChunk) {
+    for (auto &[key, chunk] : _activeChunk) {
         if ((chunk.mesh == nullptr || chunk.dirty) && camera.isInFOV(key.first, key.second)) {
-            addFaces(chunk, key.first, key.second);
+            tMesh mesh;
+            addFaces(chunk, key.first, key.second, mesh);
+            chunk.mesh = std::make_unique<Mesh>(mesh, 5, GL_STATIC_DRAW);
             chunk.dirty = false;
         }
     }
@@ -66,14 +69,14 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
     const int playerChunkX = floor(playerPos.x / 16);
     const int playerChunkZ = floor(playerPos.z / 16);
 
-    for (auto &[key, chunk] : activeChunk) {
+    for (auto &[key, chunk] : _activeChunk) {
 
         const int relativeChunkX = key.first - playerChunkX;
         const int relativeChunkZ = key.second - playerChunkZ;
         const glm::vec3 chunkPos =
-            glm::vec3(relativeChunkX * chunkSize, 0.0f, relativeChunkZ * chunkSize);
+            glm::vec3(relativeChunkX * _chunkSize, 0.0f, relativeChunkZ * _chunkSize);
 
-        if (abs(relativeChunkX) <= renderDistance && abs(relativeChunkZ) <= renderDistance &&
+        if (abs(relativeChunkX) <= _renderDistance && abs(relativeChunkZ) <= _renderDistance &&
             camera.isInFOV(key.first, key.second)) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
             shader.setMat4("model", model);
@@ -81,87 +84,81 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
         }
     }
 }
-void ChunkManager::addFaces(Chunk &_chunk, const int chunkX, const int chunkZ) {
+void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tMesh &mesh) {
 
-    tMesh chunk;
     int vertexOffset{};
-    for (int z = 0; z < chunkSize; z++) {
-        for (int x = 0; x < chunkSize; x++) {
+    for (int z = 0; z < _chunkSize; z++) {
+        for (int x = 0; x < _chunkSize; x++) {
             for (int y = 0; y < 256; y++) {
                 glm::vec3 pos(x, y, z);
 
-                if (_chunk.block[x][z][y] == CubeType::AIR)
+                if (chunk.block[x][z][y] == CubeType::AIR)
                     continue;
 
-                if (_chunk.block[x][z][y + 1] == CubeType::AIR) // top
-                    addFace(pos, _chunk.block[x][z][y], CubeFace::TOP, chunk, vertexOffset);
+                if (chunk.block[x][z][y + 1] == CubeType::AIR) // top
+                    addFace(pos, chunk.block[x][z][y], CubeFace::TOP, mesh, vertexOffset);
 
-                if (y != 0 && _chunk.block[x][z][y - 1] == CubeType::AIR) // bottom
-                    addFace(pos, _chunk.block[x][z][y], CubeFace::BOTTOM, chunk, vertexOffset);
+                if (y != 0 && chunk.block[x][z][y - 1] == CubeType::AIR) // bottom
+                    addFace(pos, chunk.block[x][z][y], CubeFace::BOTTOM, mesh, vertexOffset);
 
-                if (x > 0 && _chunk.block[x - 1][z][y] == CubeType::AIR) // left
-                    addFace(pos, _chunk.block[x][z][y], CubeFace::LEFT, chunk, vertexOffset);
+                if (x > 0 && chunk.block[x - 1][z][y] == CubeType::AIR) // left
+                    addFace(pos, chunk.block[x][z][y], CubeFace::LEFT, mesh, vertexOffset);
 
-                if (x < chunkSize - 1 && _chunk.block[x + 1][z][y] == CubeType::AIR) // right
-                    addFace(pos, _chunk.block[x][z][y], CubeFace::RIGHT, chunk, vertexOffset);
+                if (x < _chunkSize - 1 && chunk.block[x + 1][z][y] == CubeType::AIR) // right
+                    addFace(pos, chunk.block[x][z][y], CubeFace::RIGHT, mesh, vertexOffset);
 
-                if (z > 0 && _chunk.block[x][z - 1][y] == CubeType::AIR) // front
-                    addFace(pos, _chunk.block[x][z][y], CubeFace::FRONT, chunk, vertexOffset);
+                if (z > 0 && chunk.block[x][z - 1][y] == CubeType::AIR) // front
+                    addFace(pos, chunk.block[x][z][y], CubeFace::FRONT, mesh, vertexOffset);
 
-                if (z < chunkSize - 1 && _chunk.block[x][z + 1][y] == CubeType::AIR) // back
-                    addFace(pos, _chunk.block[x][z][y], CubeFace::BACK, chunk, vertexOffset);
+                if (z < _chunkSize - 1 && chunk.block[x][z + 1][y] == CubeType::AIR) // back
+                    addFace(pos, chunk.block[x][z][y], CubeFace::BACK, mesh, vertexOffset);
 
                 if (x == 0) { // left on border
                     std::pair<int, int> key{chunkX - 1, chunkZ};
 
-                    if (activeChunk.contains(key)) {
-                        Chunk &neighborChunk = activeChunk[key];
+                    if (_activeChunk.contains(key)) {
+                        Chunk &neighborChunk = _activeChunk[key];
 
                         if (neighborChunk.block[15][z][y] == CubeType::AIR)
-                            addFace(pos, _chunk.block[x][z][y], CubeFace::LEFT, chunk,
-                                    vertexOffset);
+                            addFace(pos, chunk.block[x][z][y], CubeFace::LEFT, mesh, vertexOffset);
                     }
                 }
 
-                if (x == chunkSize - 1) { // right on border
+                if (x == _chunkSize - 1) { // right on border
                     std::pair<int, int> key{chunkX + 1, chunkZ};
 
-                    if (activeChunk.contains(key)) {
-                        Chunk &neighborChunk = activeChunk[key];
+                    if (_activeChunk.contains(key)) {
+                        Chunk &neighborChunk = _activeChunk[key];
 
                         if (neighborChunk.block[0][z][y] == CubeType::AIR)
-                            addFace(pos, _chunk.block[x][z][y], CubeFace::RIGHT, chunk,
-                                    vertexOffset);
+                            addFace(pos, chunk.block[x][z][y], CubeFace::RIGHT, mesh, vertexOffset);
                     }
                 }
 
                 if (z == 0) { // front on border
                     std::pair<int, int> key{chunkX, chunkZ - 1};
 
-                    if (activeChunk.contains(key)) {
-                        Chunk &neighborChunk = activeChunk[key];
+                    if (_activeChunk.contains(key)) {
+                        Chunk &neighborChunk = _activeChunk[key];
 
                         if (neighborChunk.block[x][15][y] == CubeType::AIR)
-                            addFace(pos, _chunk.block[x][z][y], CubeFace::FRONT, chunk,
-                                    vertexOffset);
+                            addFace(pos, chunk.block[x][z][y], CubeFace::FRONT, mesh, vertexOffset);
                     }
                 }
 
-                if (z == chunkSize - 1) { // back on border
+                if (z == _chunkSize - 1) { // back on border
                     std::pair<int, int> key{chunkX, chunkZ + 1};
 
-                    if (activeChunk.contains(key)) {
-                        Chunk &neighborChunk = activeChunk[key];
+                    if (_activeChunk.contains(key)) {
+                        Chunk &neighborChunk = _activeChunk[key];
 
                         if (neighborChunk.block[x][0][y] == CubeType::AIR)
-                            addFace(pos, _chunk.block[x][z][y], CubeFace::BACK, chunk,
-                                    vertexOffset);
+                            addFace(pos, chunk.block[x][z][y], CubeFace::BACK, mesh, vertexOffset);
                     }
                 }
             }
         }
     }
-    _chunk.mesh = std::make_unique<Mesh>(chunk, 5, GL_STATIC_DRAW);
 }
 
 void ChunkManager::addFace(const glm::vec3 &pos, const CubeType &type, CubeFace face, tMesh &chunk,
@@ -196,7 +193,7 @@ void ChunkManager::markNeigborChunkDirty(const int chunkX, const int chunkZ) {
         {chunkX - 1, chunkZ}, {chunkX + 1, chunkZ}, {chunkX, chunkZ - 1}, {chunkX, chunkZ + 1}};
 
     for (auto &key : neighbor) {
-        if (activeChunk.contains(key))
-            activeChunk[key].dirty = true;
+        if (_activeChunk.contains(key))
+            _activeChunk[key].dirty = true;
     }
 }

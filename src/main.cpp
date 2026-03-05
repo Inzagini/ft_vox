@@ -73,7 +73,8 @@ int main() {
     Camera camera;
     CameraControl camControl(camera);
     int seed = 21323;
-    ChunkManager chunkManager(seed, texture);
+    ThreadPool threadPool(3);
+    ChunkManager chunkManager(seed, texture, threadPool);
 
     while (!glfwWindowShouldClose(window.get())) {
 

@@ -1,17 +1,21 @@
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
+#include <cstddef>
 #include <functional>
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <vector>
+
 class ThreadPool {
 
   public:
     ThreadPool(const uint8_t n) {
         running = true;
-        for (uint8_t i = 0; i < n; i++) {
-            workers.emplace_back([this] { this->workerLoop(); });
+        for (size_t i = 0; i < n; i++) {
+            workers.emplace_back([this] { workerLoop(); });
         }
     }
 
@@ -22,7 +26,7 @@ class ThreadPool {
             t.join();
     }
 
-    void enqueue(std::function<void()> job) {
+    void addTask(std::function<void()> job) {
         {
             std::lock_guard<std::mutex> lock(mutex);
             jobs.push(job);
@@ -32,14 +36,14 @@ class ThreadPool {
 
   private:
     void workerLoop() {
-        while (running) {
+        while (true) {
             std::function<void()> job;
             {
                 std::unique_lock<std::mutex> lock(mutex);
                 cv.wait(lock, [&] { return !jobs.empty() || !running; });
                 if (!running && jobs.empty())
                     return;
-                job = jobs.front();
+                job = std::move(jobs.front());
                 jobs.pop();
             }
             job();
@@ -49,6 +53,7 @@ class ThreadPool {
   private:
     std::vector<std::thread> workers;
     std::queue<std::function<void()>> jobs;
+
     std::mutex mutex;
     std::condition_variable cv;
     std::atomic<bool> running;

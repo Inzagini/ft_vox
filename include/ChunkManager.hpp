@@ -15,15 +15,15 @@
 class ChunkManager {
   public:
     ChunkManager(const int seed, TextureRegistry &texture, ThreadPool &threadPool)
-        : seed(seed), generator(seed), texture(texture), threadPool(threadPool) {
-        activeChunk.reserve(renderDistance * renderDistance);
+        : _seed(seed), generator(seed), texture(texture), threadPool(threadPool) {
+        _activeChunk.reserve(_renderDistance * _renderDistance);
     }
     void render(Shader &shader, const glm::vec3 &playerPos, Camera &camera);
     void update(Camera &camera);
 
   private:
     void createChunk(const int chunkX, const int chunkZ);
-    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
+    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ, tMesh &mesh);
     void unload(const int chunkX, const int chunkZ);
     void meshing(const int chunkX, const int chunkZ, Camera &camera);
     void greedyMesh(Chunk &_chunk);
@@ -48,11 +48,11 @@ class ChunkManager {
 
   private:
     ChunkGenerator generator;
-    std::unordered_map<std::pair<int, int>, Chunk, pairHash> activeChunk;
-    const int seed;
-    const int renderDistance{10};
-    const int loadDistance{renderDistance + 2};
-    const int chunkSize{16};
+    std::unordered_map<std::pair<int, int>, Chunk, pairHash> _activeChunk;
+    const int _seed;
+    const int _renderDistance{10};
+    const int _loadDistance{_renderDistance + 2};
+    const int _chunkSize{16};
     std::mutex activeChunkMutex;
     TextureRegistry &texture;
     ThreadPool &threadPool;
