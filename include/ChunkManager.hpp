@@ -22,7 +22,6 @@ class ChunkManager {
     void update(Camera &camera);
 
   private:
-    void uploadMesh();
     void createChunk(const int chunkX, const int chunkZ);
     void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ);
     void unload(const int chunkX, const int chunkZ);
@@ -54,8 +53,6 @@ class ChunkManager {
     const int renderDistance{10};
     const int loadDistance{renderDistance + 2};
     const int chunkSize{16};
-    std::vector<std::pair<std::pair<int, int>, tMesh>> uploadQ;
-    std::mutex uploadQMutex;
     std::mutex activeChunkMutex;
     TextureRegistry &texture;
     ThreadPool &threadPool;

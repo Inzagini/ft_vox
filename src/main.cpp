@@ -1,5 +1,4 @@
 #include "main.hpp"
-#include "ThreadPool.hpp"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -74,8 +73,7 @@ int main() {
     Camera camera;
     CameraControl camControl(camera);
     int seed = 21323;
-    ThreadPool threadPool(std::thread::hardware_concurrency());
-    ChunkManager chunkManager(seed, texture, threadPool);
+    ChunkManager chunkManager(seed, texture);
 
     while (!glfwWindowShouldClose(window.get())) {
 
