@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Atlas.hpp"
 #include "Camera.hpp"
 #include "ChunkGenerator.hpp"
 #include "CubeData.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include "ThreadPool.hpp"
 #include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
 #include <unordered_map>
@@ -14,8 +12,8 @@
 
 class ChunkManager {
   public:
-    ChunkManager(const int seed, TextureRegistry &texture, ThreadPool &threadPool)
-        : seed(seed), generator(seed), texture(texture), threadPool(threadPool) {
+    ChunkManager(const int seed, TextureRegistry &texture)
+        : seed(seed), generator(seed), texture(texture) {
         activeChunk.reserve(renderDistance * renderDistance);
     }
     void render(Shader &shader, const glm::vec3 &playerPos, Camera &camera);
@@ -54,11 +52,13 @@ class ChunkManager {
     const int renderDistance{10};
     const int loadDistance{renderDistance + 2};
     const int chunkSize{16};
+<<<<<<< HEAD
     std::vector<std::pair<std::pair<int, int>, tMesh>> uploadQ;
     std::mutex uploadQMutex;
     std::mutex activeChunkMutex;
+=======
+>>>>>>> parent of 8f2d48e (added ThreadPool.hpp)
     TextureRegistry &texture;
-    ThreadPool &threadPool;
 
     // TODO: future change in keyhasing a paring bit shifting for cords texture and block type
     std::vector<std::pair<uint64_t, Mesh>> meshedChunk;

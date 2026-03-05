@@ -15,10 +15,10 @@ class TextureRegistry {
     glm::vec2 getTextureUV(const CubeType blockType, const CubeFace face);
 
   private:
-    constexpr void setBlockTexture(const uint8_t blockType, const uint16_t textureIndex);
+    void setBlockTexture(const uint8_t blockType, const uint16_t textureIndex);
 
-    constexpr void setBlockTexture(const uint8_t blockType, const uint16_t top,
-                                   const uint16_t bottom, const uint16_t side);
+    void setBlockTexture(const uint8_t blockType, const uint16_t top, const uint16_t bottom,
+                         const uint16_t side);
     bool loadBitMap();
 
   private:
