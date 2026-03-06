@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -15,11 +16,12 @@ class ThreadPool {
     ThreadPool(const uint8_t n) {
         running = true;
         for (size_t i = 0; i < n; i++) {
-            workers.emplace_back([this] { workerLoop(); });
+            workers.emplace_back([this] { this->workerLoop(); });
         }
     }
 
     ~ThreadPool() {
+        std::unique_lock<std::mutex> lock(mutex);
         running = false;
         cv.notify_all();
         for (auto &t : workers)
@@ -29,7 +31,7 @@ class ThreadPool {
     void addTask(std::function<void()> job) {
         {
             std::lock_guard<std::mutex> lock(mutex);
-            jobs.push(job);
+            tasks.push(job);
         }
         cv.notify_one();
     }
@@ -40,11 +42,11 @@ class ThreadPool {
             std::function<void()> job;
             {
                 std::unique_lock<std::mutex> lock(mutex);
-                cv.wait(lock, [&] { return !jobs.empty() || !running; });
-                if (!running && jobs.empty())
+                cv.wait(lock, [&] { return !tasks.empty() || !running; });
+                if (!running && tasks.empty())
                     return;
-                job = std::move(jobs.front());
-                jobs.pop();
+                job = std::move(tasks.front());
+                tasks.pop();
             }
             job();
         }
@@ -52,7 +54,7 @@ class ThreadPool {
 
   private:
     std::vector<std::thread> workers;
-    std::queue<std::function<void()>> jobs;
+    std::queue<std::function<void()>> tasks;
 
     std::mutex mutex;
     std::condition_variable cv;

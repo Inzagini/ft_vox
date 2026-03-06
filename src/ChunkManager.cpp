@@ -2,6 +2,7 @@
 #include "Atlas.hpp"
 #include "CubeData.hpp"
 #include "Texture.hpp"
+#include <mutex>
 
 void ChunkManager::update(Camera &camera) {
     glm::vec3 pos = camera.getPos();
@@ -21,45 +22,57 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             int chunkZ = playerChunkZ + dz;
             std::pair<int, int> key = {chunkX, chunkZ};
 
-            if (_activeChunk.contains(key))
-                continue;
+            {
+                std::lock_guard<std::mutex> lock(activeChunkMutex);
+                if (_activeChunk.contains(key))
+                    continue;
+            }
+            threadPool.addTask([this, key, chunkX, chunkZ] {
+                Chunk chunk;
+                generator.generateChunk(chunk, chunkX, chunkZ);
+                {
+                    std::lock_guard<std::mutex> lock(activeChunkMutex);
+                    // if (!_activeChunk.contains({chunkX - 1, chunkZ}) ||
+                    //     !_activeChunk.contains({chunkX + 1, chunkZ}) ||
+                    //     !_activeChunk.contains({chunkX, chunkZ - 1}) ||
+                    //     !_activeChunk.contains({chunkX, chunkZ + 1}))
+                    chunk.dirty = true;
 
-            Chunk chunk;
-            generator.generateChunk(chunk, chunkX, chunkZ);
-
-            if (!_activeChunk.contains({chunkX - 1, chunkZ}) ||
-                !_activeChunk.contains({chunkX + 1, chunkZ}) ||
-                !_activeChunk.contains({chunkX, chunkZ - 1}) ||
-                !_activeChunk.contains({chunkX, chunkZ + 1}))
-                chunk.dirty = true;
-
-            _activeChunk.try_emplace(key, std::move(chunk));
-            markNeigborChunkDirty(chunkX, chunkZ);
+                    _activeChunk.try_emplace(key, std::move(chunk));
+                    // markNeigborChunkDirty(chunkX, chunkZ);
+                }
+            });
         }
     }
 }
 
 void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
-    for (auto it = _activeChunk.begin(); it != _activeChunk.end();) {
-        int chunkX = it->first.first;
-        int chunkZ = it->first.second;
-        if (abs(chunkX - playerChunkX) > _loadDistance ||
-            abs(chunkZ - playerChunkZ) > _loadDistance) {
-            it = _activeChunk.erase(it); // safely remove outside chunk
-        } else {
-            ++it;
+
+    {
+        std::lock_guard<std::mutex> lock(activeChunkMutex);
+        for (auto it = _activeChunk.begin(); it != _activeChunk.end();) {
+            int chunkX = it->first.first;
+            int chunkZ = it->first.second;
+            if (abs(chunkX - playerChunkX) > _loadDistance ||
+                abs(chunkZ - playerChunkZ) > _loadDistance) {
+                it = _activeChunk.erase(it); // safely remove outside chunk
+            } else {
+                ++it;
+            }
         }
     }
 }
 
 void ChunkManager::meshing(const int chunkX, const int chunkZ, Camera &camera) {
-
-    for (auto &[key, chunk] : _activeChunk) {
-        if ((chunk.mesh == nullptr || chunk.dirty) && camera.isInFOV(key.first, key.second)) {
-            tMesh mesh;
-            addFaces(chunk, key.first, key.second, mesh);
-            chunk.mesh = std::make_unique<Mesh>(mesh, 5, GL_STATIC_DRAW);
-            chunk.dirty = false;
+    {
+        std::lock_guard<std::mutex> lock(activeChunkMutex);
+        for (auto &[key, chunk] : _activeChunk) {
+            if ((chunk.mesh == nullptr || chunk.dirty) && camera.isInFOV(key.first, key.second)) {
+                tMesh mesh;
+                addFaces(chunk, key.first, key.second, mesh);
+                chunk.mesh = std::make_unique<Mesh>(mesh, 5, GL_STATIC_DRAW);
+                chunk.dirty = false;
+            }
         }
     }
 }
@@ -70,6 +83,9 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
     const int playerChunkZ = floor(playerPos.z / 16);
 
     for (auto &[key, chunk] : _activeChunk) {
+
+        if (chunk.mesh == nullptr)
+            continue;
 
         const int relativeChunkX = key.first - playerChunkX;
         const int relativeChunkZ = key.second - playerChunkZ;
@@ -192,8 +208,11 @@ void ChunkManager::markNeigborChunkDirty(const int chunkX, const int chunkZ) {
     std::pair<int, int> neighbor[4] = {
         {chunkX - 1, chunkZ}, {chunkX + 1, chunkZ}, {chunkX, chunkZ - 1}, {chunkX, chunkZ + 1}};
 
-    for (auto &key : neighbor) {
-        if (_activeChunk.contains(key))
-            _activeChunk[key].dirty = true;
+    {
+        std::lock_guard<std::mutex> lock(activeChunkMutex);
+        for (auto &key : neighbor) {
+            if (_activeChunk.contains(key))
+                _activeChunk[key].dirty = true;
+        }
     }
 }

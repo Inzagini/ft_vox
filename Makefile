@@ -32,7 +32,10 @@ fclean: clean
 re: fclean all
 
 test: $(NAME)
-	./$(NAME) $(TEST_FILE)
+	./$(NAME) 
+
+t: $(NAME)
+	timeout 20s ./$(NAME)
 
 supp: $(NAME)
 	LSAN_OPTIONS=suppressions=lsan.supp ./$(NAME) $(TEST_FILE)

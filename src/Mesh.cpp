@@ -1,8 +1,8 @@
 #include "Mesh.hpp"
 
 Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int drawType) {
-    index_count = chunk.indices.size();
-    vertex_count = chunk.vertices.size() / 3;
+    _indexCount = chunk.indices.size();
+    _vertexCount = chunk.vertices.size() / 3;
 
     glGenVertexArrays(1, &_VAO);
     glGenBuffers(1, &_VBO);
@@ -37,21 +37,21 @@ Mesh &Mesh::operator=(Mesh other) {
         _VAO = other._VAO;
         _VBO = other._VBO;
         _EBO = other._EBO;
-        index_count = other.index_count;
-        vertex_count = other.vertex_count;
+        _indexCount = other._indexCount;
+        _vertexCount = other._vertexCount;
     }
     return *this;
 }
 
 Mesh::Mesh(Mesh &&other) noexcept
-    : _VAO(other._VAO), _VBO(other._VBO), _EBO(other._EBO), index_count(other.index_count),
-      vertex_count(other.vertex_count) {
+    : _VAO(other._VAO), _VBO(other._VBO), _EBO(other._EBO), _indexCount(other._indexCount),
+      _vertexCount(other._vertexCount) {
 
     other._VAO = 0;
     other._VBO = 0;
     other._EBO = 0;
-    other.index_count = 0;
-    other.vertex_count = 0;
+    other._indexCount = 0;
+    other._vertexCount = 0;
 }
 
 Mesh &Mesh::operator=(Mesh &&other) noexcept {
@@ -81,10 +81,10 @@ Mesh::~Mesh() {
 
 void Mesh::draw() {
     glBindVertexArray(_VAO);
-    if (index_count)
-        glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+    if (_indexCount)
+        glDrawElements(GL_TRIANGLES, _indexCount, GL_UNSIGNED_INT, 0);
     else
-        glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+        glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
 
     glBindVertexArray(0);
 }

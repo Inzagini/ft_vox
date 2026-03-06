@@ -20,6 +20,6 @@ class Mesh {
 
   private:
     unsigned int _VBO{}, _VAO{}, _EBO{};
-    size_t index_count{};
-    size_t vertex_count{};
+    size_t _indexCount{};
+    size_t _vertexCount{};
 };
