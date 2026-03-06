@@ -1,6 +1,6 @@
 #include "Mesh.hpp"
 
-Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int drawType) {
+void Mesh::make(const tMesh &chunk, const unsigned int &size) {
     _indexCount = chunk.indices.size();
     _vertexCount = chunk.vertices.size() / 3;
 
@@ -17,7 +17,7 @@ Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int draw
     if (!chunk.indices.empty()) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk.indices.size() * sizeof(unsigned int),
-                     chunk.indices.data(), drawType);
+                     chunk.indices.data(), GL_STATIC_DRAW);
     }
 
     // position attribute
@@ -28,8 +28,6 @@ Mesh::Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int draw
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size * sizeof(float),
                           (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    // glBindVertexArray(0);
 }
 
 Mesh &Mesh::operator=(Mesh other) {
@@ -62,10 +60,14 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept {
         _VAO = other._VAO;
         _VBO = other._VBO;
         _EBO = other._EBO;
+        _indexCount = other._indexCount;
+        _vertexCount = other._vertexCount;
 
         other._VAO = 0;
         other._VBO = 0;
         other._EBO = 0;
+        other._indexCount = 0;
+        other._vertexCount = 0;
     }
     return *this;
 }

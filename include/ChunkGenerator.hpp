@@ -15,6 +15,6 @@ class ChunkGenerator {
     const float scale{0.01f};
     const float heightMultiplier{50.0f};
     const float baseHeight{25.0f};
-    const int chunkSize{16};
+    const uint8_t chunkSize{16};
     unsigned int seed;
 };

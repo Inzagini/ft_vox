@@ -11,12 +11,13 @@ struct tMesh {
 
 class Mesh {
   public:
-    Mesh(const tMesh &chunk, const unsigned int &size, const unsigned int drawType);
+    Mesh() = default;
     Mesh &operator=(Mesh);
     Mesh(Mesh &&other) noexcept;
     Mesh &operator=(Mesh &&other) noexcept;
     ~Mesh();
     void draw();
+    void make(const tMesh &chunk, const unsigned int &size);
 
   private:
     unsigned int _VBO{}, _VAO{}, _EBO{};

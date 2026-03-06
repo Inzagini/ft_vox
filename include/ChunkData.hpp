@@ -10,9 +10,12 @@ struct ChunkData {
 };
 
 struct Chunk {
-    CubeType block[16][16][256];
-    int heightMap[16][16];
-    // std::vector<std::vector<int>> heightMap{16, std::vector<int>(16)};
-    std::unique_ptr<Mesh> mesh = nullptr;
-    bool dirty{false};
+    CubeType blocks[16 * 16 * 256];
+    uint16_t heightMap[16][16];
+    // std::unique_ptr<Mesh> mesh = nullptr;
+    Mesh mesh;
+    bool hasMesh{false};
+    bool dirty{true};
+
+    inline CubeType &getBlock(int x, int y, int z) { return blocks[x | (z << 4) | (y << 8)]; }
 };

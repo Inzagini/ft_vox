@@ -14,13 +14,13 @@ void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chu
 
             for (int y = 0; y < 256; y++) {
                 if (y == height)
-                    chunk.block[x][z][y] = CubeType::GRASS;
+                    chunk.getBlock(x, y, z) = CubeType::GRASS;
                 else if (y >= height - 3 && y < height)
-                    chunk.block[x][z][y] = CubeType::DIRT;
+                    chunk.getBlock(x, y, z) = CubeType::DIRT;
                 else if (y < height)
-                    chunk.block[x][z][y] = CubeType::STONE;
+                    chunk.getBlock(x, y, z) = CubeType::STONE;
                 else {
-                    chunk.block[x][z][y] = CubeType::AIR;
+                    chunk.getBlock(x, y, z) = CubeType::AIR;
                 }
             }
         }
