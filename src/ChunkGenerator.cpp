@@ -1,12 +1,17 @@
 #include "ChunkGenerator.hpp"
+#include "CubeData.hpp"
 #include <algorithm>
 #include <cstdlib>
 
 void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chunkZ) {
+
+    float worldOffsetX = chunkX * chunkSize * scale;
+    float worldOffsetZ = chunkZ * chunkSize * scale;
+
     for (int z = 0; z < chunkSize; z++) {
+        float worldZ = worldOffsetZ + z * scale;
         for (int x = 0; x < chunkSize; x++) {
-            float worldX = (chunkX * chunkSize + x) * scale;
-            float worldZ = (chunkZ * chunkSize + z) * scale;
+            float worldX = worldOffsetX + x * scale;
             int hillHeight = std::floor(terrainNoise.octaveNoise(worldX, worldZ, 6, 0.5, 2.0) *
                                         heightMultiplier);
 
@@ -24,17 +29,17 @@ void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chu
             int height = sum > 255 ? 255 : sum;
             chunk.heightMap[x][z] = height;
 
-            for (int y = 0; y < 256; y++) {
-                if (y == height)
-                    chunk.getBlock(x, y, z) = CubeType::GRASS;
-                else if (y >= height - 3 && y < height)
-                    chunk.getBlock(x, y, z) = CubeType::DIRT;
-                else if (y < height)
-                    chunk.getBlock(x, y, z) = CubeType::STONE;
-                else {
-                    chunk.getBlock(x, y, z) = CubeType::AIR;
-                }
-            }
+            // TODO: create a seperate function for cave, mountains etc.
+            int yInitHeight = std::max(0, height - 3);
+            int y;
+            for (y = 0; y < yInitHeight; y++)
+                chunk.getBlock(x, y, z) = CubeType::STONE;
+
+            for (; y < height; y++)
+                chunk.getBlock(x, y, z) = CubeType::DIRT;
+
+            if (height >= 0 && height < 256)
+                chunk.getBlock(x, height, z) = CubeType::GRASS;
         }
     }
 }

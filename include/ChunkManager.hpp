@@ -26,7 +26,7 @@ class ChunkManager {
     void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ, tMesh &mesh);
     void unload(const int chunkX, const int chunkZ);
     void meshing(const int chunkX, const int chunkZ, Camera &camera);
-    void greedyMesh(Chunk &_chunk);
+    void greedyMesh(Chunk &_chunk); // TODO: greedy meshing
     bool isNeighborBlockAir();
     void markNeigborChunkDirty(const int chunkX, const int chunkZ);
     void addFace(const glm::vec3 &pos, const CubeType &type, CubeFace face, tMesh &chunk,
@@ -48,7 +48,6 @@ class ChunkManager {
 
   private:
     ChunkGenerator generator;
-    // std::unordered_map<std::pair<int, int>, Chunk, pairHash> _activeChunk;
     std::unordered_map<uint64_t, Chunk> _activeChunk;
     const int _seed;
     const int _renderDistance{10};
@@ -57,7 +56,4 @@ class ChunkManager {
     std::mutex activeChunkMutex;
     TextureRegistry &texture;
     ThreadPool &threadPool;
-
-    // TODO: future change in keyhasing a paring bit shifting for cords texture and block type
-    std::vector<std::pair<uint64_t, Mesh>> meshedChunk;
 };

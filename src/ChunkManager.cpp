@@ -19,6 +19,7 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
     std::vector<std::pair<uint64_t, Chunk>> generatedChunks;
     generatedChunks.reserve(700);
 
+    Chunk chunk;
     for (int dx = -_loadDistance; dx <= _loadDistance; dx++) {
         for (int dz = -_loadDistance; dz <= _loadDistance; dz++) {
             int chunkX = playerChunkX + dx;
@@ -28,9 +29,9 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             if (_activeChunk.contains(key))
                 continue;
 
-            Chunk chunk;
             generator.generateChunk(chunk, chunkX, chunkZ);
             generatedChunks.push_back({std::move(key), std::move(chunk)});
+            chunk.reset();
         }
     }
 
