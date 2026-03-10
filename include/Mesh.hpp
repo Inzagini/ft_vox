@@ -7,6 +7,16 @@
 struct tMesh {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
+
+    tMesh() {
+        vertices.reserve(600);
+        indices.reserve(600);
+    }
+
+    void reset() {
+        vertices.clear();
+        indices.clear();
+    }
 };
 
 class Mesh {
