@@ -22,7 +22,7 @@ inline glm::vec2 getUV(uint16_t index) {
 
     return glm::vec2(u, v);
 }
-inline uint8_t indexing(int x, int y) { return x * TILES_X + y; }
+inline uint16_t indexing(int x, int y) { return (x * TILES_X) + y; }
 
 constexpr glm::vec2 getTileSize() {
     return glm::vec2((float)TILE_SIZE / ATLAS_WITDH, (float)TILE_SIZE / ATLAS_HEIGHT);

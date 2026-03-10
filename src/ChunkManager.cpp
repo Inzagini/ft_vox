@@ -17,7 +17,7 @@ void ChunkManager::update(Camera &camera) {
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
     std::vector<std::pair<int, int>> chunkToGenerate;
-    chunkToGenerate.reserve(200);
+    chunkToGenerate.reserve(600);
 
     for (int dx = -_loadDistance; dx <= _loadDistance; dx++) {
         for (int dz = -_loadDistance; dz <= _loadDistance; dz++) {
@@ -25,26 +25,21 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
             int chunkZ = playerChunkZ + dz;
             std::pair<int, int> key = {chunkX, chunkZ};
 
-            {
-                std::lock_guard<std::mutex> lock(activeChunkMutex);
-                if (_activeChunk.contains(key))
-                    continue;
-            }
-            // threadPool.addTask([this, key, chunkX, chunkZ] {
+            if (_activeChunk.contains(key))
+                continue;
+
             Chunk chunk;
             generator.generateChunk(chunk, chunkX, chunkZ);
             {
-                std::lock_guard<std::mutex> lock(activeChunkMutex);
-                or // if (!_activeChunk.contains({chunkX - 1, chunkZ}) ||
-                   //     !_activeChunk.contains({chunkX + 1, chunkZ}) ||
-                   //     !_activeChunk.contains({chunkX, chunkZ - 1}) ||
-                   //     !_activeChunk.contains({chunkX, chunkZ + 1}))
-                   //     chunk.dirty = true;
+                if (!_activeChunk.contains({chunkX - 1, chunkZ}) ||
+                    !_activeChunk.contains({chunkX + 1, chunkZ}) ||
+                    !_activeChunk.contains({chunkX, chunkZ - 1}) ||
+                    !_activeChunk.contains({chunkX, chunkZ + 1}))
+                    chunk.dirty = true;
 
-                    _activeChunk.try_emplace(key, std::move(chunk));
+                _activeChunk.try_emplace(key, std::move(chunk));
                 markNeigborChunkDirty(chunkX, chunkZ);
             }
-            // });
         }
     }
 }
@@ -141,8 +136,20 @@ void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tM
                     if (_activeChunk.contains(key)) {
                         Chunk &neighborChunk = _activeChunk[key];
 
-                        if (neighborChunk.getBlock(15, y, z) == CubeType::AIR)
+                        if (neighborChunk.getBlock(_chunkSize - 1, y, z) == CubeType::AIR)
                             addFace(pos, chunk.getBlock(x, y, z), CubeFace::LEFT, mesh,
+                                    vertexOffset);
+                    }
+                }
+
+                if (z == 0) { // front on border
+                    std::pair<int, int> key{chunkX, chunkZ - 1};
+
+                    if (_activeChunk.contains(key)) {
+                        Chunk &neighborChunk = _activeChunk[key];
+
+                        if (neighborChunk.getBlock(x, y, _chunkSize - 1) == CubeType::AIR)
+                            addFace(pos, chunk.getBlock(x, y, z), CubeFace::FRONT, mesh,
                                     vertexOffset);
                     }
                 }
@@ -155,18 +162,6 @@ void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tM
 
                         if (neighborChunk.getBlock(0, y, z) == CubeType::AIR)
                             addFace(pos, chunk.getBlock(x, y, z), CubeFace::RIGHT, mesh,
-                                    vertexOffset);
-                    }
-                }
-
-                if (z == 0) { // front on border
-                    std::pair<int, int> key{chunkX, chunkZ - 1};
-
-                    if (_activeChunk.contains(key)) {
-                        Chunk &neighborChunk = _activeChunk[key];
-
-                        if (neighborChunk.getBlock(x, y, 15) == CubeType::AIR)
-                            addFace(pos, chunk.getBlock(x, y, z), CubeFace::FRONT, mesh,
                                     vertexOffset);
                     }
                 }

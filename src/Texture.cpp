@@ -29,8 +29,8 @@ const unsigned int TextureRegistry::getTextureID() { return textureID; }
 void TextureRegistry::initialize() {
     loadBitMap();
 
-    setBlockTexture(static_cast<uint8_t>(CubeType::GRASS), Atlas::indexing(13, 10),
-                    Atlas::indexing(8, 5), 320);
+    setBlockTexture(static_cast<uint8_t>(CubeType::GRASS), Atlas::indexing(10, 13),
+                    Atlas::indexing(4, 8), 320);
 
     setBlockTexture(static_cast<uint8_t>(CubeType::DIRT), Atlas::indexing(4, 8));
 
