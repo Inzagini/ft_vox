@@ -16,14 +16,14 @@ void ChunkManager::update(Camera &camera) {
 
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
-    std::vector<std::pair<std::pair<int, int>, Chunk>> generatedChunks;
+    std::vector<std::pair<uint64_t, Chunk>> generatedChunks;
     generatedChunks.reserve(700);
 
     for (int dx = -_loadDistance; dx <= _loadDistance; dx++) {
         for (int dz = -_loadDistance; dz <= _loadDistance; dz++) {
             int chunkX = playerChunkX + dx;
             int chunkZ = playerChunkZ + dz;
-            std::pair<int, int> key = {chunkX, chunkZ};
+            uint64_t key = makeHash(chunkX, chunkZ);
 
             if (_activeChunk.contains(key))
                 continue;
@@ -39,8 +39,8 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
         auto [key, chunk] = std::move(generatedChunks.back());
         generatedChunks.pop_back();
 
-        int chunkX = key.first;
-        int chunkZ = key.second;
+        int chunkX = getXFromHash(key);
+        int chunkZ = getZFromHash(key);
 
         _activeChunk.try_emplace(std::move(key), std::move(chunk));
         markNeigborChunkDirty(chunkX, chunkZ);
@@ -50,10 +50,9 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
 
     {
-        std::lock_guard<std::mutex> lock(activeChunkMutex);
         for (auto it = _activeChunk.begin(); it != _activeChunk.end();) {
-            int chunkX = it->first.first;
-            int chunkZ = it->first.second;
+            int chunkX = getXFromHash(it->first);
+            int chunkZ = getZFromHash(it->first);
             if (abs(chunkX - playerChunkX) > _loadDistance ||
                 abs(chunkZ - playerChunkZ) > _loadDistance) {
                 it = _activeChunk.erase(it); // safely remove outside chunk
@@ -66,13 +65,14 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
 
 void ChunkManager::meshing(const int chunkX, const int chunkZ, Camera &camera) {
     {
-        std::lock_guard<std::mutex> lock(activeChunkMutex);
+        // std::lock_guard<std::mutex> lock(activeChunkMutex);
         for (auto &[key, chunk] : _activeChunk) {
-            if ((chunk.hasMesh == false || chunk.dirty) && camera.isInFOV(key.first, key.second)) {
-
+            int chunkX = getXFromHash(key);
+            int chunkZ = getZFromHash(key);
+            if ((chunk.hasMesh == false || chunk.dirty) && camera.isInFOV(chunkX, chunkZ)) {
                 // thread
                 tMesh tmesh;
-                addFaces(chunk, key.first, key.second, tmesh);
+                addFaces(chunk, chunkX, chunkZ, tmesh);
                 chunk.mesh.make(tmesh, 5);
                 chunk.hasMesh = true;
                 chunk.dirty = false;
@@ -91,13 +91,16 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
         if (chunk.hasMesh == false)
             continue;
 
-        const int relativeChunkX = key.first - playerChunkX;
-        const int relativeChunkZ = key.second - playerChunkZ;
+        const int chunkX = getXFromHash(key);
+        const int chunkZ = getZFromHash(key);
+
+        const int relativeChunkX = chunkX - playerChunkX;
+        const int relativeChunkZ = chunkZ - playerChunkZ;
         const glm::vec3 chunkPos =
             glm::vec3(relativeChunkX * _chunkSize, 0.0f, relativeChunkZ * _chunkSize);
 
         if (abs(relativeChunkX) <= _renderDistance && abs(relativeChunkZ) <= _renderDistance &&
-            camera.isInFOV(key.first, key.second)) {
+            camera.isInFOV(chunkX, chunkZ)) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
             shader.setMat4("model", model);
             chunk.mesh.draw();
@@ -134,7 +137,7 @@ void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tM
                     addFace(pos, chunk.getBlock(x, y, z), CubeFace::BACK, mesh, vertexOffset);
 
                 if (x == 0) { // left on border
-                    std::pair<int, int> key{chunkX - 1, chunkZ};
+                    uint64_t key = makeHash(chunkX - 1, chunkZ);
 
                     if (_activeChunk.contains(key)) {
                         Chunk &neighborChunk = _activeChunk[key];
@@ -146,7 +149,7 @@ void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tM
                 }
 
                 if (z == 0) { // front on border
-                    std::pair<int, int> key{chunkX, chunkZ - 1};
+                    uint64_t key = makeHash(chunkX, chunkZ - 1);
 
                     if (_activeChunk.contains(key)) {
                         Chunk &neighborChunk = _activeChunk[key];
@@ -158,7 +161,7 @@ void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tM
                 }
 
                 if (x == _chunkSize - 1) { // right on border
-                    std::pair<int, int> key{chunkX + 1, chunkZ};
+                    uint64_t key = makeHash(chunkX + 1, chunkZ);
 
                     if (_activeChunk.contains(key)) {
                         Chunk &neighborChunk = _activeChunk[key];
@@ -170,7 +173,7 @@ void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tM
                 }
 
                 if (z == _chunkSize - 1) { // back on border
-                    std::pair<int, int> key{chunkX, chunkZ + 1};
+                    uint64_t key = makeHash(chunkX, chunkZ + 1);
 
                     if (_activeChunk.contains(key)) {
                         Chunk &neighborChunk = _activeChunk[key];
@@ -213,8 +216,8 @@ void ChunkManager::addFace(const glm::vec3 &pos, const CubeType &type, CubeFace 
 }
 
 void ChunkManager::markNeigborChunkDirty(const int chunkX, const int chunkZ) {
-    std::pair<int, int> neighbor[4] = {
-        {chunkX - 1, chunkZ}, {chunkX + 1, chunkZ}, {chunkX, chunkZ - 1}, {chunkX, chunkZ + 1}};
+    uint64_t neighbor[4] = {makeHash(chunkX - 1, chunkZ), makeHash(chunkX + 1, chunkZ),
+                            makeHash(chunkX, chunkZ - 1), makeHash(chunkX, chunkZ + 1)};
 
     for (auto &key : neighbor) {
         auto it = _activeChunk.find(key);

@@ -48,7 +48,8 @@ class ChunkManager {
 
   private:
     ChunkGenerator generator;
-    std::unordered_map<std::pair<int, int>, Chunk, pairHash> _activeChunk;
+    // std::unordered_map<std::pair<int, int>, Chunk, pairHash> _activeChunk;
+    std::unordered_map<uint64_t, Chunk> _activeChunk;
     const int _seed;
     const int _renderDistance{10};
     const int _loadDistance{_renderDistance + 2};
