@@ -16,7 +16,7 @@ class ChunkManager {
   public:
     ChunkManager(const int seed, TextureRegistry &texture, ThreadPool &threadPool)
         : _seed(seed), generator(seed), texture(texture), threadPool(threadPool) {
-        _activeChunk.reserve(_renderDistance * _renderDistance);
+        _activeChunk.reserve(_loadDistance * _loadDistance * 4);
     }
     void render(Shader &shader, const glm::vec3 &playerPos, Camera &camera);
     void update(Camera &camera);

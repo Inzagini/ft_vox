@@ -15,7 +15,7 @@ struct Chunk {
     // std::unique_ptr<Mesh> mesh = nullptr;
     Mesh mesh;
     bool hasMesh{false};
-    bool dirty{true};
+    bool dirty{false};
 
     inline CubeType &getBlock(int x, int y, int z) { return blocks[x | (z << 4) | (y << 8)]; }
 };

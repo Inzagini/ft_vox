@@ -16,8 +16,8 @@ void ChunkManager::update(Camera &camera) {
 
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
-    std::vector<std::pair<int, int>> chunkToGenerate;
-    chunkToGenerate.reserve(600);
+    std::vector<std::pair<std::pair<int, int>, Chunk>> generatedChunks;
+    generatedChunks.reserve(700);
 
     for (int dx = -_loadDistance; dx <= _loadDistance; dx++) {
         for (int dz = -_loadDistance; dz <= _loadDistance; dz++) {
@@ -30,17 +30,20 @@ void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
             Chunk chunk;
             generator.generateChunk(chunk, chunkX, chunkZ);
-            {
-                if (!_activeChunk.contains({chunkX - 1, chunkZ}) ||
-                    !_activeChunk.contains({chunkX + 1, chunkZ}) ||
-                    !_activeChunk.contains({chunkX, chunkZ - 1}) ||
-                    !_activeChunk.contains({chunkX, chunkZ + 1}))
-                    chunk.dirty = true;
-
-                _activeChunk.try_emplace(key, std::move(chunk));
-                markNeigborChunkDirty(chunkX, chunkZ);
-            }
+            generatedChunks.push_back({std::move(key), std::move(chunk)});
         }
+    }
+
+    while (!generatedChunks.empty()) {
+
+        auto [key, chunk] = std::move(generatedChunks.back());
+        generatedChunks.pop_back();
+
+        int chunkX = key.first;
+        int chunkZ = key.second;
+
+        _activeChunk.try_emplace(std::move(key), std::move(chunk));
+        markNeigborChunkDirty(chunkX, chunkZ);
     }
 }
 
@@ -214,7 +217,8 @@ void ChunkManager::markNeigborChunkDirty(const int chunkX, const int chunkZ) {
         {chunkX - 1, chunkZ}, {chunkX + 1, chunkZ}, {chunkX, chunkZ - 1}, {chunkX, chunkZ + 1}};
 
     for (auto &key : neighbor) {
-        if (_activeChunk.contains(key))
-            _activeChunk[key].dirty = true;
+        auto it = _activeChunk.find(key);
+        if (it != _activeChunk.end())
+            it->second.dirty = true;
     }
 }
