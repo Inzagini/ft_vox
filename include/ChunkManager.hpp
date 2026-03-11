@@ -9,6 +9,7 @@
 #include "ThreadPool.hpp"
 #include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
+#include <bitset>
 #include <unordered_map>
 #include <utility>
 
@@ -31,20 +32,14 @@ class ChunkManager {
     void markNeigborChunkDirty(const int chunkX, const int chunkZ);
     void addFace(const glm::vec3 &pos, const CubeType &type, CubeFace face, tMesh &chunk,
                  int &vertexOffset);
-    struct pairHash {
-        std::size_t operator()(const std::pair<int, int> &p) const noexcept {
-            std::size_t h1 = std::hash<int>{}(p.first);
-            std::size_t h2 = std::hash<int>{}(p.second);
-            return h1 ^ (h2 << 1);
-        }
-    };
 
     uint64_t makeHash(const int chunkX, const int chunkZ) {
-        return (static_cast<uint64_t>(chunkX) << 32 | static_cast<uint32_t>(chunkZ));
+        return static_cast<uint64_t>(static_cast<uint32_t>(chunkX)) << 38 |
+               ((static_cast<uint64_t>(static_cast<uint32_t>(chunkZ))) << 6);
     }
 
-    int getXFromHash(uint64_t hash) { return static_cast<int>(hash >> 32); }
-    int getZFromHash(uint64_t hash) { return static_cast<int>(hash & 0xFFFFFFFFULL); }
+    int getXFromHash(uint64_t hash) { return static_cast<int>((int64_t)hash >> 38); }
+    int getZFromHash(uint64_t hash) { return static_cast<int>((hash >> 6) & 0xFFFFFFFF); }
 
   private:
     ChunkGenerator generator;
