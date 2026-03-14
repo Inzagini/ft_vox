@@ -48,6 +48,9 @@ class ChunkManager {
 
     int getXFromHash(uint64_t hash) { return static_cast<int>((int64_t)hash >> 38); }
     int getZFromHash(uint64_t hash) { return static_cast<int>(((int64_t)hash << 26) >> 38); }
+    uint8_t getYFromHash(uint64_t hash) {
+        return static_cast<uint8_t>(((int64_t)hash << 52) >> 56);
+    }
 
   private:
     ChunkGenerator generator;
