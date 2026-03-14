@@ -13,6 +13,12 @@
 #include <unordered_map>
 #include <utility>
 
+/*
+ * Manager of chunks. chunk are save in unordered map
+ * keys of table are chunk's coordinates  (uint64_t)
+ * | X(26bits) | Z(26bits) | Y(8bits) | unused 4bits|
+ * */
+
 class ChunkManager {
   public:
     ChunkManager(const int seed, TextureRegistry &texture, ThreadPool &threadPool)
@@ -34,12 +40,14 @@ class ChunkManager {
                  int &vertexOffset);
 
     uint64_t makeHash(const int chunkX, const int chunkZ) {
-        return static_cast<uint64_t>(static_cast<uint32_t>(chunkX)) << 38 |
-               ((static_cast<uint64_t>(static_cast<uint32_t>(chunkZ))) << 6);
+        return ((static_cast<uint64_t>(chunkX) & 0x03FFFFFF) << 38) |
+               ((static_cast<uint64_t>(chunkZ) & 0x03FFFFFF) << 12);
     }
 
+    int32_t unpackBits(uint32_t hash) { return static_cast<int32_t>(hash << 7) >> 7; }
+
     int getXFromHash(uint64_t hash) { return static_cast<int>((int64_t)hash >> 38); }
-    int getZFromHash(uint64_t hash) { return static_cast<int>((hash >> 6) & 0xFFFFFFFF); }
+    int getZFromHash(uint64_t hash) { return static_cast<int>(((int64_t)hash << 26) >> 38); }
 
   private:
     ChunkGenerator generator;
