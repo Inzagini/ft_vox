@@ -3,7 +3,9 @@
 #include "glm/glm.hpp"
 
 enum class CubeFace : uint8_t { TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK };
-enum class CubeType : uint8_t { AIR = 0, GRASS, DIRT, STONE };
+
+// INFO: when size of the CubeType is change need to update number of Types in Texture.hpp
+enum class CubeType : uint8_t { AIR = 0, GRASS, DIRT, STONE, WATER, BEDROCK };
 
 constexpr glm::vec3 cubeFaceVertices[6][4] = {
     // TOP (y+1)

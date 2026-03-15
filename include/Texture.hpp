@@ -4,7 +4,6 @@
 #include "Atlas.hpp"
 #include "CubeData.hpp"
 #include "glad/glad.h"
-#include <array>
 #include <iostream>
 
 class TextureRegistry {
@@ -22,7 +21,7 @@ class TextureRegistry {
     bool loadBitMap();
 
   private:
-    static constexpr int BLOCK_TYPE_COUNT = 4;
+    static constexpr int BLOCK_TYPE_COUNT = 6;
     static constexpr int FACE_COUNT = 6;
     unsigned int textureID = 0;
     uint16_t blockTextures[BLOCK_TYPE_COUNT][FACE_COUNT];

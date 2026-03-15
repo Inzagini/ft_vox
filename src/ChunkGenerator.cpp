@@ -5,8 +5,8 @@
 
 void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chunkZ) {
 
-    float worldOffsetX = chunkX * chunkSize * scale;
-    float worldOffsetZ = chunkZ * chunkSize * scale;
+    const float worldOffsetX = chunkX * chunkSize * scale;
+    const float worldOffsetZ = chunkZ * chunkSize * scale;
 
     for (int z = 0; z < chunkSize; z++) {
         float worldZ = worldOffsetZ + z * scale;
@@ -32,7 +32,10 @@ void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chu
             // TODO: create a seperate function for cave, mountains etc.
             int yInitHeight = std::max(0, height - 3);
             int y;
-            for (y = 0; y < yInitHeight; y++)
+
+            // chunk.getBlock(x, -64, z) = CubeType::BEDROCK;
+
+            for (y = -63; y < yInitHeight; y++)
                 chunk.getBlock(x, y, z) = CubeType::STONE;
 
             for (; y < height; y++)

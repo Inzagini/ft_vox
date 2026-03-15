@@ -32,7 +32,8 @@ void processInput(GLFWwindow *window, CameraControl &cameraControler) {
 
     if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
         glm::vec3 pos = cameraControler.getCameraPos();
-        std::cout << "Current position: " << pos.x << " | " << pos.z << '\n';
+        std::cout << "Current position x: " << pos.x << " | y: " << pos.y << " | z: " << pos.z
+                  << '\n';
     }
 
     // TODO:: need to put in to CameraControl class
@@ -84,7 +85,7 @@ int main() {
 
         processInput(window.get(), camControl);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.431f, 0.494f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();

@@ -5,8 +5,8 @@
 #include <cstring>
 #include <memory>
 
-static CubeType emptyChunk[16 * 16 * 256];
-static CubeType emptyChunkSection[16 * 16 * 16];
+static constexpr CubeType emptyChunk[16 * 16 * 384] = {};
+static constexpr CubeType emptyChunkSection[16 * 16 * 16] = {};
 
 struct ChunkSection {
     CubeType blocks[16 * 16 * 16];
@@ -27,7 +27,7 @@ static ChunkSection emptyChunk_[16];
 
 struct Chunk {
     ChunkSection sections[16];
-    CubeType blocks[16 * 16 * 256];
+    CubeType blocks[16 * 16 * 384];
     uint16_t heightMap[16][16];
     Mesh mesh;
     bool hasMesh{false};
@@ -42,5 +42,7 @@ struct Chunk {
         dirty = false;
     }
 
-    inline CubeType &getBlock(int x, int y, int z) { return blocks[x | (z << 4) | (y << 8)]; }
+    inline CubeType &getBlock(int x, int y, int z) {
+        return blocks[x | (z << 4) | ((y + 64) << 8)];
+    }
 };

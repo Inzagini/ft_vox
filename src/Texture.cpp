@@ -35,6 +35,8 @@ void TextureRegistry::initialize() {
     setBlockTexture(static_cast<uint8_t>(CubeType::DIRT), Atlas::indexing(4, 8));
 
     setBlockTexture(static_cast<uint8_t>(CubeType::STONE), Atlas::indexing(10, 19));
+    setBlockTexture(static_cast<uint8_t>(CubeType::WATER), Atlas::indexing(0, 3));
+    setBlockTexture(static_cast<uint8_t>(CubeType::BEDROCK), Atlas::indexing(3, 4));
 }
 
 bool TextureRegistry::loadBitMap() {
