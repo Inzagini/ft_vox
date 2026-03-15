@@ -1,28 +1,23 @@
 #pragma once
 
-#include <random>
 #include <cmath>
+#include <random>
 
-class  PerlinNoise
-{
-    public:
-        PerlinNoise(const int seed);
-        double octaveNoise(const double, const double, const int, const double, const double);
+class PerlinNoise {
+  public:
+    PerlinNoise(const int seed);
+    double octaveNoise(const double, const double, const int, const double, const double);
 
-    private:
-        void Shuffle(std::vector<int> &);
-        double fade(const double t) const
-        { return t * t * t * (t * ( t * 6 - 15) + 10); }
+  private:
+    void Shuffle(std::vector<int> &);
+    inline double fade(const double t) const { return t * t * t * (t * (t * 6 - 15) + 10); }
 
-        double lerp(const double a, const double b, const double x)
-        { return a + x * (b - a); }
+    inline double lerp(const double a, const double b, const double x) { return a + x * (b - a); }
 
-        double grad(const int hash,const double x, const double y);
-        double noise(const double x, const double y);
+    double grad(const int hash, const double x, const double y);
+    double noise(const double x, const double y);
 
-    private:
-        int seed;
-        std::vector<int> permutationTable;
-
+  private:
+    int seed;
+    alignas(64) std::vector<uint8_t> permutationTable;
 };
-    

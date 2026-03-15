@@ -12,9 +12,9 @@ class ChunkGenerator {
 
   private:
     PerlinNoise terrainNoise;
-    const float scale{0.01f};
-    const float heightMultiplier{50.0f};
-    const float baseHeight{25.0f};
-    const uint8_t chunkSize{16};
+    static constexpr float scale{0.01f};
+    static constexpr float heightMultiplier{50.0f};
+    static constexpr float baseHeight{25.0f};
+    static constexpr uint8_t chunkSize{16};
     unsigned int seed;
 };

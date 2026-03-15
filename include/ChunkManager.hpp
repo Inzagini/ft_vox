@@ -56,9 +56,9 @@ class ChunkManager {
     ChunkGenerator generator;
     std::unordered_map<uint64_t, Chunk> _activeChunk;
     const int _seed;
-    const int _renderDistance{10};
-    const int _loadDistance{_renderDistance + 2};
-    const int _chunkSize{16};
+    static constexpr int _renderDistance{10};
+    static constexpr int _loadDistance{_renderDistance + 2};
+    static constexpr int _chunkSize{16};
     std::mutex activeChunkMutex;
     TextureRegistry &texture;
     ThreadPool &threadPool;

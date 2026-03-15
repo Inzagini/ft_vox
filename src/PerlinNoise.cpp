@@ -16,34 +16,37 @@ PerlinNoise::PerlinNoise(int seed) : seed(seed) {
 }
 
 double PerlinNoise::grad(const int hash, const double x, const double y) {
-    int h = hash & 7;
-    double u = h < 4 ? x : y;
-    double v = h < 4 ? y : x;
+    const int h = hash & 7;
+    const double u = h < 4 ? x : y;
+    const double v = h < 4 ? y : x;
 
     return ((h & 1) ? -u : u) + ((h & 2) ? -2.0 * v : 2.0 * v);
 }
 
 double PerlinNoise::noise(const double x, const double y) {
-    const int X = (int)std::floor(x) & 255;
-    const int Y = (int)std::floor(y) & 255;
 
-    double xf = x - std::floor(x);
-    double yf = y - std::floor(y);
+    const int xi = (int)std::floor(x);
+    const int yi = (int)std::floor(y);
 
-    double u = fade(xf);
-    double v = fade(yf);
+    const int X = xi & 255;
+    const int Y = yi & 255;
 
-    int A = permutationTable[X] + Y;
-    int B = permutationTable[X + 1] + Y;
+    const double xf = x - xi;
+    const double yf = y - yi;
 
-    int aa = permutationTable[A];
-    int ab = permutationTable[A + 1];
-    int ba = permutationTable[B];
-    int bb = permutationTable[B + 1];
+    const double u = fade(xf);
+    const double v = fade(yf);
 
-    double x1 = lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u);
+    const int A = permutationTable[X] + Y;
+    const int B = permutationTable[X + 1] + Y;
 
-    double x2 = lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u);
+    const int aa = permutationTable[A];
+    const int ab = permutationTable[A + 1];
+    const int ba = permutationTable[B];
+    const int bb = permutationTable[B + 1];
+
+    const double x1 = lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u);
+    const double x2 = lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u);
 
     return lerp(x1, x2, v);
 }
