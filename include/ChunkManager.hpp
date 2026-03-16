@@ -30,7 +30,7 @@ class ChunkManager {
 
   private:
     void createChunk(const int chunkX, const int chunkZ);
-    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ, tMesh &mesh);
+    void addFaces(Chunk &_chunk, const int chunkX, const int chunkZ, const int chunkY, tMesh &mesh);
     void unload(const int chunkX, const int chunkZ);
     void meshing(const int chunkX, const int chunkZ, Camera &camera);
     void greedyMesh(Chunk &_chunk); // TODO: greedy meshing

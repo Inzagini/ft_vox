@@ -1,5 +1,20 @@
 #include "CameraControl.hpp"
 
+void CameraControl::processKeyBoard(GLFWwindow *window) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        handleKeyboardInput(InputAction::MOVE_FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        handleKeyboardInput(InputAction::MOVE_BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        handleKeyboardInput(InputAction::MOVE_LEFT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        handleKeyboardInput(InputAction::MOVE_RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        handleKeyboardInput(InputAction::MOVE_FLY_UP);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        handleKeyboardInput(InputAction::MOVE_FLY_DOWN);
+}
+
 void CameraControl::handleKeyboardInput(InputAction action) {
     glm::vec3 cameraFront = camera.getFront();
     glm::vec3 flatFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
@@ -57,4 +72,23 @@ void CameraControl::handleMouseMovement(float xoffset, float yoffset) {
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     camera.setFront(glm::normalize(front));
+}
+
+void CameraControl::onMovement(double xposIn, double yposIn) {
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    handleMouseMovement(xoffset, yoffset);
 }

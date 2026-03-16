@@ -5,11 +5,8 @@
 
 #include "CameraControl.hpp"
 #include "ChunkManager.hpp"
+#include "ProcessInput.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Window.hpp"
 #include <iostream>
-
-void processInput(GLFWwindow *window);
-
-class Window;

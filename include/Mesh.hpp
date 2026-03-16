@@ -9,8 +9,8 @@ struct tMesh {
     std::vector<unsigned int> indices;
 
     tMesh() {
-        vertices.reserve(600);
-        indices.reserve(600);
+        vertices.reserve(1000);
+        indices.reserve(1000);
     }
 
     void reset() {

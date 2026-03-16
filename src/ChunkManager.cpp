@@ -2,7 +2,7 @@
 #include "Atlas.hpp"
 #include "CubeData.hpp"
 #include "Texture.hpp"
-#include <mutex>
+#include <array>
 
 void ChunkManager::update(Camera &camera) {
     glm::vec3 pos = camera.getPos();
@@ -17,7 +17,7 @@ void ChunkManager::update(Camera &camera) {
 void ChunkManager::createChunk(const int playerChunkX, const int playerChunkZ) {
 
     std::vector<std::pair<uint64_t, Chunk>> generatedChunks;
-    generatedChunks.reserve(700);
+    generatedChunks.reserve((_loadDistance + 1) * (_loadDistance + 1));
 
     Chunk chunk;
     for (int dx = -_loadDistance; dx <= _loadDistance; dx++) {
@@ -56,7 +56,7 @@ void ChunkManager::unload(const int playerChunkX, const int playerChunkZ) {
             int chunkZ = getZFromHash(it->first);
             if (abs(chunkX - playerChunkX) > _loadDistance ||
                 abs(chunkZ - playerChunkZ) > _loadDistance) {
-                it = _activeChunk.erase(it); // safely remove outside chunk
+                it = _activeChunk.erase(it);
             } else {
                 ++it;
             }
@@ -70,13 +70,24 @@ void ChunkManager::meshing(const int chunkX, const int chunkZ, Camera &camera) {
         for (auto &[key, chunk] : _activeChunk) {
             int chunkX = getXFromHash(key);
             int chunkZ = getZFromHash(key);
-            if ((chunk.hasMesh == false || chunk.dirty) && camera.isInFOV(chunkX, chunkZ)) {
 
-                addFaces(chunk, chunkX, chunkZ, tmesh);
-                chunk.mesh.make(tmesh, 5);
-                chunk.hasMesh = true;
-                chunk.dirty = false;
-                tmesh.reset();
+            if (!camera.isInFOV(chunkX, chunkZ))
+                continue;
+
+            for (int chunkY = 0; chunkY < 24; chunkY++) {
+
+                ChunkSection &section = chunk.sections[chunkY];
+
+                if (section.empty)
+                    continue;
+
+                if (section.dirty) {
+                    addFaces(chunk, chunkX, chunkZ, chunkY, tmesh);
+                    section.mesh.make(tmesh, 5);
+                    section.hasMesh = true;
+                    section.dirty = false;
+                    tmesh.reset();
+                }
             }
         }
     }
@@ -89,101 +100,107 @@ void ChunkManager::render(Shader &shader, const glm::vec3 &playerPos, Camera &ca
 
     for (auto &[key, chunk] : _activeChunk) {
 
-        if (chunk.hasMesh == false)
-            continue;
-
         const int chunkX = getXFromHash(key);
         const int chunkZ = getZFromHash(key);
 
         const int relativeChunkX = chunkX - playerChunkX;
         const int relativeChunkZ = chunkZ - playerChunkZ;
-        const glm::vec3 chunkPos =
-            glm::vec3(relativeChunkX * _chunkSize, 0.0f, relativeChunkZ * _chunkSize);
 
-        if (abs(relativeChunkX) <= _renderDistance && abs(relativeChunkZ) <= _renderDistance &&
-            camera.isInFOV(chunkX, chunkZ)) {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
-            shader.setMat4("model", model);
-            chunk.mesh.draw();
+        if (!(abs(relativeChunkX) <= _renderDistance && abs(relativeChunkZ) <= _renderDistance &&
+              camera.isInFOV(chunkX, chunkZ)))
+            continue;
+
+        for (int i = 0; i < 24; i++) {
+
+            auto &sec = chunk.sections[i];
+            float yPos = (float)i * 16 - 64;
+
+            if (sec.empty)
+                continue;
+
+            const glm::vec3 chunkPos =
+                glm::vec3(relativeChunkX * _chunkSize, yPos, relativeChunkZ * _chunkSize);
+
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), chunkPos);
+                shader.setMat4("model", model);
+                sec.mesh.draw();
+            }
         }
     }
 }
-void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, tMesh &mesh) {
+void ChunkManager::addFaces(Chunk &chunk, const int chunkX, const int chunkZ, const int chunkY,
+                            tMesh &mesh) {
 
     int vertexOffset{};
+    auto neighborLeft = _activeChunk.find(makeHash(chunkX - 1, chunkZ));
+    auto neighborRight = _activeChunk.find(makeHash(chunkX + 1, chunkZ));
+    auto neighborFront = _activeChunk.find(makeHash(chunkX, chunkZ - 1));
+    auto neighborBack = _activeChunk.find(makeHash(chunkX, chunkZ + 1));
+
     for (int z = 0; z < _chunkSize; z++) {
         for (int x = 0; x < _chunkSize; x++) {
-            for (int y = -64; y < 256; y++) {
-                glm::vec3 pos(x, y, z);
+            for (int y = 0; y < _chunkSize; y++) {
 
-                if (chunk.getBlock(x, y, z) == CubeType::AIR)
+                ChunkSection &chunkSection = chunk.sections[chunkY];
+                CubeType &currentBlock = chunkSection.getBlock(x, y, z);
+
+                if (currentBlock == CubeType::AIR)
                     continue;
 
-                CubeType &currentBlock = chunk.getBlock(x, y, z);
+                glm::vec3 pos(x, y, z);
 
-                if (chunk.getBlock(x, y + 1, z) == CubeType::AIR) // top
+                if (y != _chunkSize - 1 &&
+                    chunkSection.getBlock(x, y + 1, z) == CubeType::AIR) // top
+                    addFace(pos, currentBlock, CubeFace::TOP, mesh, vertexOffset);
+                else if (y == 15 && chunkY + 1 < 24 &&
+                         chunk.sections[chunkY + 1].getBlock(x, 0, z) == CubeType::AIR)
                     addFace(pos, currentBlock, CubeFace::TOP, mesh, vertexOffset);
 
-                if (y != 0 && chunk.getBlock(x, y - 1, z) == CubeType::AIR) // bottom
+                if (y != 0 && chunkSection.getBlock(x, y - 1, z) == CubeType::AIR) // bottom
+                    addFace(pos, currentBlock, CubeFace::BOTTOM, mesh, vertexOffset);
+                else if (y == 0 && chunkY - 1 >= 0 &&
+                         chunk.sections[chunkY - 1].getBlock(x, 15, z) == CubeType::AIR)
                     addFace(pos, currentBlock, CubeFace::BOTTOM, mesh, vertexOffset);
 
-                if (x > 0 && chunk.getBlock(x - 1, y, z) == CubeType::AIR) // left
+                if (x > 0 && chunkSection.getBlock(x - 1, y, z) == CubeType::AIR) // left
                     addFace(pos, currentBlock, CubeFace::LEFT, mesh, vertexOffset);
+                else if (x == 0 && neighborLeft != _activeChunk.end()) { // left on border
+                    ChunkSection &neighborChunk = neighborLeft->second.sections[chunkY];
 
-                if (x < _chunkSize - 1 && chunk.getBlock(x + 1, y, z) == CubeType::AIR) // right
+                    if (neighborChunk.getBlock(_chunkSize - 1, y, z) == CubeType::AIR)
+                        addFace(pos, currentBlock, CubeFace::LEFT, mesh, vertexOffset);
+                }
+
+                if (x < _chunkSize - 1 &&
+                    chunkSection.getBlock(x + 1, y, z) == CubeType::AIR) // right
                     addFace(pos, currentBlock, CubeFace::RIGHT, mesh, vertexOffset);
+                else if (x == _chunkSize - 1 &&
+                         neighborRight != _activeChunk.end()) { // right on border
+                    ChunkSection &neighborChunk = neighborRight->second.sections[chunkY];
 
-                if (z > 0 && chunk.getBlock(x, y, z - 1) == CubeType::AIR) // front
+                    if (neighborChunk.getBlock(0, y, z) == CubeType::AIR)
+                        addFace(pos, currentBlock, CubeFace::RIGHT, mesh, vertexOffset);
+                }
+
+                if (z > 0 && chunkSection.getBlock(x, y, z - 1) == CubeType::AIR) // front
                     addFace(pos, currentBlock, CubeFace::FRONT, mesh, vertexOffset);
+                else if (z == 0 && neighborFront != _activeChunk.end()) { // front on border
+                    ChunkSection &neighborChunk = neighborFront->second.sections[chunkY];
 
-                if (z < _chunkSize - 1 && chunk.getBlock(x, y, z + 1) == CubeType::AIR) // back
+                    if (neighborChunk.getBlock(x, y, _chunkSize - 1) == CubeType::AIR)
+                        addFace(pos, currentBlock, CubeFace::FRONT, mesh, vertexOffset);
+                }
+
+                if (z < _chunkSize - 1 &&
+                    chunkSection.getBlock(x, y, z + 1) == CubeType::AIR) // back
                     addFace(pos, currentBlock, CubeFace::BACK, mesh, vertexOffset);
+                else if (z == _chunkSize - 1 &&
+                         neighborBack != _activeChunk.end()) { // back on border
+                    ChunkSection &neighborChunk = neighborBack->second.sections[chunkY];
 
-                if (x == 0) { // left on border
-                    uint64_t key = makeHash(chunkX - 1, chunkZ);
-
-                    auto it = _activeChunk.find(key);
-                    if (it != _activeChunk.end()) {
-                        Chunk &neighborChunk = it->second;
-
-                        if (neighborChunk.getBlock(_chunkSize - 1, y, z) == CubeType::AIR)
-                            addFace(pos, currentBlock, CubeFace::LEFT, mesh, vertexOffset);
-                    }
-                }
-
-                if (z == 0) { // front on border
-                    uint64_t key = makeHash(chunkX, chunkZ - 1);
-                    auto it = _activeChunk.find(key);
-                    if (it != _activeChunk.end()) {
-                        Chunk &neighborChunk = it->second;
-
-                        if (neighborChunk.getBlock(x, y, _chunkSize - 1) == CubeType::AIR)
-                            addFace(pos, currentBlock, CubeFace::FRONT, mesh, vertexOffset);
-                    }
-                }
-
-                if (x == _chunkSize - 1) { // right on border
-                    uint64_t key = makeHash(chunkX + 1, chunkZ);
-
-                    auto it = _activeChunk.find(key);
-                    if (it != _activeChunk.end()) {
-                        Chunk &neighborChunk = it->second;
-
-                        if (neighborChunk.getBlock(0, y, z) == CubeType::AIR)
-                            addFace(pos, currentBlock, CubeFace::RIGHT, mesh, vertexOffset);
-                    }
-                }
-
-                if (z == _chunkSize - 1) { // back on border
-                    uint64_t key = makeHash(chunkX, chunkZ + 1);
-
-                    auto it = _activeChunk.find(key);
-                    if (it != _activeChunk.end()) {
-                        Chunk &neighborChunk = it->second;
-
-                        if (neighborChunk.getBlock(x, y, 0) == CubeType::AIR)
-                            addFace(pos, currentBlock, CubeFace::BACK, mesh, vertexOffset);
-                    }
+                    if (neighborChunk.getBlock(x, y, 0) == CubeType::AIR)
+                        addFace(pos, currentBlock, CubeFace::BACK, mesh, vertexOffset);
                 }
             }
         }
@@ -218,12 +235,26 @@ void ChunkManager::addFace(const glm::vec3 &pos, const CubeType &type, CubeFace 
 }
 
 void ChunkManager::markNeigborChunkDirty(const int chunkX, const int chunkZ) {
-    uint64_t neighbor[4] = {makeHash(chunkX - 1, chunkZ), makeHash(chunkX + 1, chunkZ),
-                            makeHash(chunkX, chunkZ - 1), makeHash(chunkX, chunkZ + 1)};
 
-    for (auto &key : neighbor) {
-        auto it = _activeChunk.find(key);
-        if (it != _activeChunk.end())
-            it->second.dirty = true;
+    const std::array neightbor = {_activeChunk.find(makeHash(chunkX - 1, chunkZ)),
+                                  _activeChunk.find(makeHash(chunkX + 1, chunkZ)),
+                                  _activeChunk.find(makeHash(chunkX, chunkZ - 1)),
+                                  _activeChunk.find(makeHash(chunkX, chunkZ + 1))};
+
+    auto it = _activeChunk.find(makeHash(chunkX, chunkZ));
+
+    if (it != _activeChunk.end()) {
+        ChunkSection(&chunkSection)[24] = it->second.sections;
+
+        for (int i = 0; i < 24; i++) {
+
+            if (!chunkSection[i].dirty)
+                continue;
+
+            for (auto &it : neightbor) {
+                if (it != _activeChunk.end())
+                    it->second.sections[i].dirty = true;
+            }
+        }
     }
 }

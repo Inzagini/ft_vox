@@ -2,6 +2,7 @@
 #include "CubeData.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <memory>
 
 void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chunkZ) {
 
@@ -29,20 +30,31 @@ void ChunkGenerator::generateChunk(Chunk &chunk, const int chunkX, const int chu
             int height = sum > 255 ? 255 : sum;
             chunk.heightMap[x][z] = height;
 
-            // TODO: create a seperate function for cave, mountains etc.
-            int yInitHeight = std::max(0, height - 3);
-            int y;
+            chunk.sections[0].getBlock(x, 0, z) = CubeType::BEDROCK;
 
-            // chunk.getBlock(x, -64, z) = CubeType::BEDROCK;
+            for (int y = -63; y <= height; y++) {
+                CubeType type;
 
-            for (y = -63; y < yInitHeight; y++)
-                chunk.getBlock(x, y, z) = CubeType::STONE;
+                if (y < height - 3)
+                    type = CubeType::STONE;
+                else if (y < height)
+                    type = CubeType::DIRT;
+                else if (y == height)
+                    type = CubeType::GRASS;
 
-            for (; y < height; y++)
-                chunk.getBlock(x, y, z) = CubeType::DIRT;
+                int iy = y + 64;
+                int sectionIndex = iy >> 4; // divide by 16
+                int localY = iy & 15;       // modulo 16
 
-            if (height >= 0 && height < 256)
-                chunk.getBlock(x, height, z) = CubeType::GRASS;
+                ChunkSection &section = chunk.sections[sectionIndex];
+
+                section.getBlock(x, localY, z) = type;
+
+                if (type != CubeType::AIR) {
+                    section.empty = false;
+                    section.dirty = true;
+                }
+            }
         }
     }
 }

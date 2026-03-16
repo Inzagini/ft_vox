@@ -11,6 +11,7 @@ class Window {
     Window();
     ~Window();
     GLFWwindow *get() const;
+    void setup();
 
   private:
     static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {

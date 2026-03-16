@@ -13,6 +13,7 @@ struct ChunkSection {
     Mesh mesh;
     bool dirty{false};
     bool empty{true};
+    bool hasMesh{false};
 
     ChunkSection() { std::memcpy(blocks, emptyChunkSection, sizeof(blocks)); }
 
@@ -21,28 +22,26 @@ struct ChunkSection {
         dirty = false;
         empty = true;
     }
+
+    inline CubeType &getBlock(int x, int y, int z) { return blocks[x | (z << 4) | (y << 8)]; }
 };
 
 static ChunkSection emptyChunk_[16];
 
 struct Chunk {
-    ChunkSection sections[16];
-    CubeType blocks[16 * 16 * 384];
+    ChunkSection sections[24];
     uint16_t heightMap[16][16];
-    Mesh mesh;
-    bool hasMesh{false};
-    bool dirty{false};
-
-    Chunk() { std::memcpy(blocks, emptyChunk, sizeof(blocks)); }
 
     inline void reset() {
-        std::memcpy(blocks, emptyChunk, sizeof(blocks));
-        std::memset(heightMap, 0, sizeof(heightMap));
-        hasMesh = false;
-        dirty = false;
+        for (auto &sec : sections)
+            sec.reset();
     }
 
     inline CubeType &getBlock(int x, int y, int z) {
-        return blocks[x | (z << 4) | ((y + 64) << 8)];
+        int iy = y + 64;
+
+        int sectionIndex = iy >> 4;
+        int localY = iy & 15;
+        return sections[sectionIndex].getBlock(x, localY, z);
     }
 };
