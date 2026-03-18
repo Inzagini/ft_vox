@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Camera.hpp"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <fstream>
@@ -17,6 +18,8 @@ class Shader {
     Shader(const std::string &vertexShaderSourcePath, const std::string &fragmentShaderSourcePath);
     void use(void);
     unsigned int getID();
+    void setCamera(Camera &);
+    void setTexture(unsigned int);
     void setVec4(const std::string &name, const glm::vec4 &value) const;
     void setVec4(const std::string &name, float x, float y, float z, float w) const;
     void setMat3(const std::string &name, const glm::mat3 &mat) const;

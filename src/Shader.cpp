@@ -33,14 +33,14 @@ unsigned int Shader::createAndCompileShader(unsigned int type, const char *sourc
 }
 
 void Shader::attachAndLinkShaders(unsigned int vertexShader, unsigned int fragmentShader) {
-    this->_ID = glCreateProgram();
-    glAttachShader(this->_ID, vertexShader);
-    glAttachShader(this->_ID, fragmentShader);
-    glLinkProgram(this->_ID);
+    _ID = glCreateProgram();
+    glAttachShader(_ID, vertexShader);
+    glAttachShader(_ID, fragmentShader);
+    glLinkProgram(_ID);
 
     int success;
     char infolog[512];
-    glGetProgramiv(this->_ID, GL_LINK_STATUS, &success);
+    glGetProgramiv(_ID, GL_LINK_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragmentShader, 512, nullptr, infolog);
         std::cerr << "ERROR SHARDER FRAGMENT COMPILATION ERROR\n" << infolog;
@@ -71,6 +71,17 @@ std::string Shader::loadShader(const std::string &name) {
     ss << file.rdbuf();
     file.close();
     return ss.str();
+}
+
+void Shader::setCamera(Camera &camera) {
+    setMat4("projection", camera.getProjection());
+    setMat4("view", camera.getViewMat());
+}
+
+void Shader::setTexture(unsigned int textID) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textID); // ID from glGenTextures
+    setInt("atlas", 0);
 }
 
 void Shader::setVec4(const std::string &name, const glm::vec4 &value) const {

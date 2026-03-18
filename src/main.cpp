@@ -28,12 +28,8 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
-        shader.setMat4("projection", camera.getProjection());
-        shader.setMat4("view", camera.getViewMat());
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture.getTextureID()); // ID from glGenTextures
-        shader.setInt("atlas", 0);
+        shader.setCamera(camera);
+        shader.setTexture(texture.getTextureID());
 
         chunkManager.update(camera);
         chunkManager.render(shader, camera.getPos(), camera);
