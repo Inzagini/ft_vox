@@ -17,8 +17,7 @@ int main() {
     if (glfwRawMouseMotionSupported())
         glfwSetInputMode(window.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-    ThreadPool threadPool(3);
-    ChunkManager chunkManager(seed, texture, threadPool);
+    ChunkManager chunkManager(seed, texture);
 
     while (!glfwWindowShouldClose(window.get())) {
 

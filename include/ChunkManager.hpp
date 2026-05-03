@@ -1,17 +1,11 @@
 #pragma once
 
-#include "Atlas.hpp"
 #include "Camera.hpp"
 #include "ChunkGenerator.hpp"
 #include "CubeData.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include "ThreadPool.hpp"
-#include "glm/geometric.hpp"
-#include "glm/trigonometric.hpp"
-#include <bitset>
 #include <unordered_map>
-#include <utility>
 
 /*
  * Manager of chunks. chunk are save in unordered map
@@ -21,8 +15,8 @@
 
 class ChunkManager {
   public:
-    ChunkManager(const int seed, TextureRegistry &texture, ThreadPool &threadPool)
-        : _seed(seed), generator(seed), texture(texture), threadPool(threadPool) {
+    ChunkManager(const int seed, TextureRegistry &texture)
+        : _seed(seed), generator(seed), texture(texture) {
         _activeChunk.reserve(_loadDistance * _loadDistance * 4);
     }
     void render(Shader &shader, const glm::vec3 &playerPos, Camera &camera);
@@ -61,5 +55,4 @@ class ChunkManager {
     static constexpr int _chunkSize{16};
     std::mutex activeChunkMutex;
     TextureRegistry &texture;
-    ThreadPool &threadPool;
 };
